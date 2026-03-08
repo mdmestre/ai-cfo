@@ -12,6 +12,7 @@ import FinancialScore from "./pages/FinancialScore";
 import AIAssistant from "./pages/AIAssistant";
 import ExpenseAnalysis from "./pages/ExpenseAnalysis";
 import RevenueAnalysis from "./pages/RevenueAnalysis";
+import Automation from "./pages/Automation";
 import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/insights" element={<Insights />} />
           <Route path="/financial-score" element={<FinancialScore />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/automation" element={<Automation />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
