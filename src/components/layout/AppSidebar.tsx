@@ -24,6 +24,7 @@ const navItems = [
   { title: "Expense Analysis", url: "/expense-analysis", icon: PieChart },
   { title: "Revenue Analysis", url: "/revenue-analysis", icon: BarChart3 },
   { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
+  { title: "Automation", url: "/automation", icon: Zap },
   { title: "Insights", url: "/insights", icon: Lightbulb },
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
 ];
