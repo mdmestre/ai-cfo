@@ -11,44 +11,44 @@ import { DollarSign, TrendingUp, CreditCard, PiggyBank } from "lucide-react";
 const Dashboard = () => {
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="max-w-[1200px] space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Good morning, John</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-xl font-semibold text-foreground">Good morning, John</h1>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
             Here's your financial overview for March 2026
           </p>
         </div>
 
-        {/* Top metrics row */}
+        {/* Top metrics */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Total Cash Position"
             value="$1.24M"
             change="+12.5%"
             changeType="positive"
-            icon={<DollarSign className="h-5 w-5 text-muted-foreground" />}
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
           />
           <MetricCard
             title="Monthly Revenue"
             value="$480K"
             change="+8.2%"
             changeType="positive"
-            icon={<TrendingUp className="h-5 w-5 text-muted-foreground" />}
+            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
           />
           <MetricCard
             title="Monthly Expenses"
             value="$310K"
             change="+3.1%"
             changeType="negative"
-            icon={<CreditCard className="h-5 w-5 text-muted-foreground" />}
+            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
           />
           <MetricCard
             title="Net Cash Flow"
             value="$170K"
             change="+24.3%"
             changeType="positive"
-            icon={<PiggyBank className="h-5 w-5 text-muted-foreground" />}
+            icon={<PiggyBank className="h-4 w-4 text-muted-foreground" />}
           />
         </div>
 

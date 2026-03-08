@@ -3,59 +3,59 @@ interface HealthScoreCardProps {
 }
 
 export function HealthScoreCard({ score }: HealthScoreCardProps) {
-  const circumference = 2 * Math.PI * 54;
+  const circumference = 2 * Math.PI * 52;
   const progress = (score / 100) * circumference;
   const strokeDashoffset = circumference - progress;
 
-  const getScoreColor = (score: number) => {
-    if (score >= 75) return "hsl(160 84% 39%)";
-    if (score >= 50) return "hsl(38 92% 50%)";
-    return "hsl(0 84% 60%)";
+  const getScoreColor = (s: number) => {
+    if (s >= 75) return "hsl(152 69% 41%)";
+    if (s >= 50) return "hsl(38 92% 50%)";
+    return "hsl(0 72% 51%)";
   };
 
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return "Excellent";
-    if (score >= 60) return "Good";
-    if (score >= 40) return "Fair";
+  const getScoreLabel = (s: number) => {
+    if (s >= 80) return "Excellent";
+    if (s >= 60) return "Good";
+    if (s >= 40) return "Fair";
     return "Needs Attention";
   };
 
   return (
     <div className="metric-card flex flex-col items-center justify-center py-8 animate-slide-up">
-      <p className="text-sm font-medium text-muted-foreground mb-6">Financial Health Score</p>
+      <p className="text-[13px] font-medium text-muted-foreground mb-5">Financial Health Score</p>
       <div className="relative">
-        <svg width="140" height="140" viewBox="0 0 120 120">
+        <svg width="130" height="130" viewBox="0 0 116 116">
           <circle
-            cx="60"
-            cy="60"
-            r="54"
+            cx="58"
+            cy="58"
+            r="52"
             fill="none"
-            stroke="hsl(var(--secondary))"
-            strokeWidth="8"
+            stroke="hsl(0 0% 94%)"
+            strokeWidth="6"
           />
           <circle
-            cx="60"
-            cy="60"
-            r="54"
+            cx="58"
+            cy="58"
+            r="52"
             fill="none"
             stroke={getScoreColor(score)}
-            strokeWidth="8"
+            strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
-            transform="rotate(-90 60 60)"
+            transform="rotate(-90 58 58)"
             className="transition-all duration-1000 ease-out"
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold text-foreground">{score}</span>
-          <span className="text-xs text-muted-foreground">/100</span>
+          <span className="text-3xl font-bold text-foreground">{score}</span>
+          <span className="text-xxs text-muted-foreground">/100</span>
         </div>
       </div>
-      <p className="mt-4 text-sm font-semibold" style={{ color: getScoreColor(score) }}>
+      <p className="mt-3 text-sm font-semibold" style={{ color: getScoreColor(score) }}>
         {getScoreLabel(score)}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Updated today</p>
+      <p className="mt-0.5 text-xxs text-muted-foreground">Updated today</p>
     </div>
   );
 }

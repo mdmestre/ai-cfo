@@ -14,40 +14,40 @@ const formatCurrency = (value: number) => `$${(value / 1000).toFixed(0)}K`;
 export function RevenueExpensesChart() {
   return (
     <div className="metric-card animate-slide-up">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Revenue vs Expenses</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">$480K / $310K</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Revenue vs Expenses</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">$480K <span className="text-base font-normal text-muted-foreground">/ $310K</span></p>
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex gap-4 text-xxs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            <span className="h-2 w-2 rounded-full bg-foreground" />
             Revenue
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground opacity-40" />
+            <span className="h-2 w-2 rounded-full bg-border" />
             Expenses
           </span>
         </div>
       </div>
-      <div className="h-[220px]">
+      <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={4}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" vertical={false} />
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(220 9% 46%)' }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(220 9% 46%)' }} tickFormatter={formatCurrency} />
+          <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={3}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 94%)" vertical={false} />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={formatCurrency} />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'hsl(0 0% 100%)',
-                border: '1px solid hsl(220 13% 91%)',
+                backgroundColor: '#fff',
+                border: '1px solid hsl(0 0% 92%)',
                 borderRadius: '8px',
-                fontSize: '13px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                fontSize: '12px',
+                boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)',
               }}
               formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
             />
-            <Bar dataKey="revenue" fill="hsl(222 47% 11%)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expenses" fill="hsl(220 13% 91%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="revenue" fill="hsl(0 0% 9%)" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" fill="hsl(0 0% 88%)" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

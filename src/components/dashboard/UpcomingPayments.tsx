@@ -12,24 +12,24 @@ export function UpcomingPayments() {
   return (
     <div className="metric-card animate-slide-up">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-medium text-muted-foreground">Upcoming Payments</p>
-        <button className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+        <p className="text-[13px] font-medium text-muted-foreground">Upcoming Payments</p>
+        <button className="flex items-center gap-1 text-[13px] font-medium text-accent hover:underline">
           View all <ArrowRight className="h-3 w-3" />
         </button>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-0">
         {payments.map((payment, i) => (
-          <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+          <div key={i} className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium text-foreground">{payment.vendor}</p>
-                <p className="text-xs text-muted-foreground">{payment.date} · {payment.category}</p>
+                <p className="text-[13px] font-medium text-foreground">{payment.vendor}</p>
+                <p className="text-xxs text-muted-foreground">{payment.date} · {payment.category}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-foreground">{payment.amount}</p>
+            <p className="text-[13px] font-semibold text-foreground">{payment.amount}</p>
           </div>
         ))}
       </div>
