@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 interface MetricCardProps {
   title: string;
@@ -13,38 +13,36 @@ export function MetricCard({ title, value, change, changeType = "neutral", icon,
   return (
     <div className="metric-card animate-slide-up">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
-          {subtitle && (
-            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
+        <p className="text-[13px] font-medium text-muted-foreground">{title}</p>
         {icon && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary">
             {icon}
           </div>
         )}
       </div>
+      <p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+      {subtitle && (
+        <p className="mt-1 text-[13px] text-muted-foreground">{subtitle}</p>
+      )}
       {change && (
-        <div className="mt-4 flex items-center gap-1.5">
+        <div className="mt-3 flex items-center gap-1">
           {changeType === "positive" ? (
-            <ArrowUpRight className="h-4 w-4 text-success" />
+            <ArrowUpRight className="h-3.5 w-3.5 text-success" />
           ) : changeType === "negative" ? (
-            <ArrowDownRight className="h-4 w-4 text-destructive" />
+            <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />
           ) : null}
           <span
-            className={
+            className={`text-[13px] font-medium ${
               changeType === "positive"
-                ? "text-sm font-medium text-success"
+                ? "text-success"
                 : changeType === "negative"
-                ? "text-sm font-medium text-destructive"
-                : "text-sm font-medium text-muted-foreground"
-            }
+                ? "text-destructive"
+                : "text-muted-foreground"
+            }`}
           >
             {change}
           </span>
-          <span className="text-sm text-muted-foreground">vs last month</span>
+          <span className="text-[13px] text-muted-foreground">vs last month</span>
         </div>
       )}
     </div>
