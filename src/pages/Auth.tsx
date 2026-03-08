@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import atlasLogo from "@/assets/atlas-logo.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -52,11 +53,8 @@ export default function Auth() {
     <div className="flex min-h-screen items-center justify-center bg-secondary/50 px-4">
       <div className="w-full max-w-sm space-y-6">
         {/* Logo */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-            <TrendingUp className="h-5 w-5 text-accent-foreground" />
-          </div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">CFO AI</h1>
+        <div className="flex flex-col items-center gap-3">
+          <img src={atlasLogo} alt="Atlas" className="h-8" />
           <p className="text-[13px] text-muted-foreground">
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </p>
@@ -106,7 +104,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-[13px] font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLogin ? "Sign in" : "Create account"}
@@ -117,7 +115,7 @@ export default function Auth() {
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="font-medium text-accent hover:underline"
+            className="font-medium text-primary hover:underline"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>

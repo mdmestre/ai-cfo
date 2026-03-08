@@ -28,8 +28,8 @@ export function TopNavbar() {
 
       <div className="flex items-center gap-2 ml-4">
         <button className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-accent/10">
-            <Building className="h-3.5 w-3.5 text-accent" />
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10">
+            <Building className="h-3.5 w-3.5 text-primary" />
           </div>
           <span className="hidden sm:inline text-[13px]">{company?.name || "Company"}</span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
@@ -41,7 +41,7 @@ export function TopNavbar() {
           <Bell className="h-4 w-4" />
         </button>
 
-        <button className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-xs font-medium hover:opacity-90 transition-opacity">
+        <button className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity">
           {initials}
         </button>
 
