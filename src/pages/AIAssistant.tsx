@@ -28,11 +28,9 @@ const AIAssistant = () => {
     const message = text || input;
     if (!message.trim()) return;
 
-    const userMsg: Message = { role: "user", content: message };
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, { role: "user", content: message }]);
     setInput("");
 
-    // Simulated AI response
     setTimeout(() => {
       let response = "";
       if (message.toLowerCase().includes("spend")) {
@@ -48,41 +46,38 @@ const AIAssistant = () => {
         response =
           "Based on your financial data, here's what I can tell you:\n\n- **Cash Position**: $1.24M (healthy)\n- **Monthly Net**: +$170K\n- **Health Score**: 78/100\n\nWould you like me to dive deeper into any specific area?";
       }
-
       setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-    }, 1000);
+    }, 800);
   };
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-7rem)] flex-col">
-        {/* Header */}
+      <div className="flex h-[calc(100vh-7rem)] flex-col max-w-[800px]">
         <div className="mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" />
-            <h1 className="text-2xl font-semibold text-foreground">AI Assistant</h1>
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <h1 className="text-xl font-semibold text-foreground">AI Assistant</h1>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Ask anything about your company's finances</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">Ask anything about your company's finances</p>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
           {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
+            <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : ""}`}>
               {msg.role === "assistant" && (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
-                  <Bot className="h-4 w-4 text-accent-foreground" />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent">
+                  <Bot className="h-3.5 w-3.5 text-accent-foreground" />
                 </div>
               )}
               <div
-                className={`max-w-2xl rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-xl rounded-lg px-3.5 py-2.5 text-[13px] leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-foreground text-background"
                     : "bg-card border border-border text-foreground"
                 }`}
               >
                 {msg.content.split("\n").map((line, j) => (
-                  <p key={j} className={j > 0 ? "mt-2" : ""}>
+                  <p key={j} className={j > 0 ? "mt-1.5" : ""}>
                     {line.split("**").map((part, k) =>
                       k % 2 === 1 ? (
                         <strong key={k} className="font-semibold">{part}</strong>
@@ -94,22 +89,21 @@ const AIAssistant = () => {
                 ))}
               </div>
               {msg.role === "user" && (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-                  <User className="h-4 w-4 text-primary-foreground" />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground">
+                  <User className="h-3.5 w-3.5 text-background" />
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Suggested questions */}
         {messages.length === 1 && (
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             {suggestedQuestions.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSend(q)}
-                className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground hover:bg-secondary transition-colors"
               >
                 {q}
               </button>
@@ -117,21 +111,20 @@ const AIAssistant = () => {
           </div>
         )}
 
-        {/* Input */}
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-2.5">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Ask about your finances..."
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none px-1"
           />
           <button
             onClick={() => handleSend()}
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground hover:opacity-90 transition-opacity"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

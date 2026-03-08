@@ -17,49 +17,53 @@ const transactions = [
 
 const Transactions = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
 
   const filtered = transactions.filter(
     (t) =>
-      t.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase())
+      (t.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (activeFilter === "All" || 
+       (activeFilter === "Revenue" && t.amount.startsWith("+")) ||
+       (activeFilter === "Expenses" && t.amount.startsWith("-")))
   );
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="max-w-[1200px] space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
-            <p className="mt-1 text-sm text-muted-foreground">View and manage all financial transactions</p>
+            <h1 className="text-xl font-semibold text-foreground">Transactions</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">View and manage all financial transactions</p>
           </div>
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
-            <Download className="h-4 w-4" />
-            Export CSV
+          <button className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90 transition-opacity">
+            <Download className="h-3.5 w-3.5" />
+            Export
           </button>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 max-w-sm">
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search transactions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+              className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
-            <Filter className="h-4 w-4" />
+          <button className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">
+            <Filter className="h-3.5 w-3.5" />
             Filters
           </button>
           {["All", "Revenue", "Expenses"].map((cat) => (
             <button
               key={cat}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                cat === "All"
-                  ? "bg-primary text-primary-foreground"
+              onClick={() => setActiveFilter(cat)}
+              className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                cat === activeFilter
+                  ? "bg-foreground text-background"
                   : "border border-border bg-card text-foreground hover:bg-secondary"
               }`}
             >
@@ -68,13 +72,12 @@ const Transactions = () => {
           ))}
         </div>
 
-        {/* Table */}
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border bg-secondary/50">
+              <tr className="border-b border-border">
                 {["Date", "Vendor", "Category", "Amount", "Account", "Status"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">
                     <button className="flex items-center gap-1 hover:text-foreground transition-colors">
                       {h}
                       <ArrowUpDown className="h-3 w-3" />
@@ -85,26 +88,22 @@ const Transactions = () => {
             </thead>
             <tbody>
               {filtered.map((t) => (
-                <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/30 transition-colors cursor-pointer">
-                  <td className="px-4 py-3.5 text-sm text-muted-foreground">{t.date}</td>
-                  <td className="px-4 py-3.5 text-sm font-medium text-foreground">{t.vendor}</td>
-                  <td className="px-4 py-3.5">
-                    <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer">
+                  <td className="px-4 py-3 text-[13px] text-muted-foreground">{t.date}</td>
+                  <td className="px-4 py-3 text-[13px] font-medium text-foreground">{t.vendor}</td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium text-secondary-foreground">
                       {t.category}
                     </span>
                   </td>
-                  <td className={`px-4 py-3.5 text-sm font-semibold ${t.amount.startsWith("+") ? "text-success" : "text-foreground"}`}>
+                  <td className={`px-4 py-3 text-[13px] font-semibold ${t.amount.startsWith("+") ? "text-success" : "text-foreground"}`}>
                     {t.amount}
                   </td>
-                  <td className="px-4 py-3.5 text-sm text-muted-foreground">{t.account}</td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        t.status === "Completed"
-                          ? "bg-accent/10 text-accent"
-                          : "bg-warning/10 text-warning"
-                      }`}
-                    >
+                  <td className="px-4 py-3 text-[13px] text-muted-foreground">{t.account}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xxs font-medium ${
+                      t.status === "Completed" ? "bg-success/8 text-success" : "bg-warning/8 text-warning"
+                    }`}>
                       {t.status}
                     </span>
                   </td>
