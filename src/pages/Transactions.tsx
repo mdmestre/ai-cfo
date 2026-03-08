@@ -1,32 +1,56 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, Filter, Download, ArrowUpDown } from "lucide-react";
+import { Search, Filter, Download, ArrowUpDown, Plus, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useAccounts } from "@/hooks/use-accounts";
+import { format } from "date-fns";
 
-const transactions = [
-  { id: 1, date: "Mar 8, 2026", vendor: "Stripe", category: "Revenue", amount: "+$42,300", account: "Operating", status: "Completed" },
-  { id: 2, date: "Mar 7, 2026", vendor: "AWS", category: "Infrastructure", amount: "-$12,400", account: "Operating", status: "Completed" },
-  { id: 3, date: "Mar 7, 2026", vendor: "Gusto", category: "Payroll", amount: "-$89,200", account: "Payroll", status: "Pending" },
-  { id: 4, date: "Mar 6, 2026", vendor: "Hubspot", category: "Software", amount: "-$3,600", account: "Operating", status: "Completed" },
-  { id: 5, date: "Mar 6, 2026", vendor: "Client - Acme Corp", category: "Revenue", amount: "+$85,000", account: "Operating", status: "Completed" },
-  { id: 6, date: "Mar 5, 2026", vendor: "WeWork", category: "Rent", amount: "-$8,500", account: "Operating", status: "Completed" },
-  { id: 7, date: "Mar 5, 2026", vendor: "Google Workspace", category: "Software", amount: "-$1,200", account: "Operating", status: "Completed" },
-  { id: 8, date: "Mar 4, 2026", vendor: "Client - TechStart", category: "Revenue", amount: "+$28,500", account: "Operating", status: "Completed" },
-  { id: 9, date: "Mar 3, 2026", vendor: "Figma", category: "Software", amount: "-$450", account: "Operating", status: "Completed" },
-  { id: 10, date: "Mar 3, 2026", vendor: "Delta Airlines", category: "Travel", amount: "-$2,800", account: "Corporate Card", status: "Completed" },
-];
+const formatCurrency = (value: number) => {
+  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+  return `$${Math.abs(value).toFixed(2)}`;
+};
 
 const Transactions = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const { transactions, isLoading, createTransaction } = useTransactions();
+  const { accounts } = useAccounts();
+
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ account_id: "", amount: "", category: "", description: "", date: "" });
 
   const filtered = transactions.filter(
     (t) =>
-      (t.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (activeFilter === "All" || 
-       (activeFilter === "Revenue" && t.amount.startsWith("+")) ||
-       (activeFilter === "Expenses" && t.amount.startsWith("-")))
+      ((t.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.category.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (activeFilter === "All" ||
+        (activeFilter === "Revenue" && t.amount > 0) ||
+        (activeFilter === "Expenses" && t.amount < 0))
   );
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    createTransaction.mutate({
+      account_id: formData.account_id,
+      amount: parseFloat(formData.amount),
+      category: formData.category,
+      description: formData.description,
+      date: formData.date || new Date().toISOString(),
+    });
+    setFormData({ account_id: "", amount: "", category: "", description: "", date: "" });
+    setShowForm(false);
+  };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -36,11 +60,74 @@ const Transactions = () => {
             <h1 className="text-xl font-semibold text-foreground">Transactions</h1>
             <p className="mt-0.5 text-[13px] text-muted-foreground">View and manage all financial transactions</p>
           </div>
-          <button className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90 transition-opacity">
-            <Download className="h-3.5 w-3.5" />
-            Export
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add
+            </button>
+          </div>
         </div>
+
+        {showForm && (
+          <form onSubmit={handleCreate} className="metric-card space-y-3">
+            <p className="text-[13px] font-medium text-foreground">New Transaction</p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <select
+                value={formData.account_id}
+                onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
+                required
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground outline-none"
+              >
+                <option value="">Select account</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>{a.bank_name} ({a.account_type})</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Amount (negative for expense)"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                required
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
+              />
+              <input
+                type="text"
+                placeholder="Category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                required
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
+              />
+              <input
+                type="text"
+                placeholder="Description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className="flex-1 rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={createTransaction.isPending}
+                  className="rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {createTransaction.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
 
         <div className="flex items-center gap-2">
           <div className="flex flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 max-w-sm">
@@ -53,10 +140,6 @@ const Transactions = () => {
               className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
             />
           </div>
-          <button className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">
-            <Filter className="h-3.5 w-3.5" />
-            Filters
-          </button>
           {["All", "Revenue", "Expenses"].map((cat) => (
             <button
               key={cat}
@@ -76,39 +159,39 @@ const Transactions = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                {["Date", "Vendor", "Category", "Amount", "Account", "Status"].map((h) => (
+                {["Date", "Description", "Category", "Amount", "Account"].map((h) => (
                   <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">
-                    <button className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      {h}
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                    {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((t) => (
-                <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors cursor-pointer">
-                  <td className="px-4 py-3 text-[13px] text-muted-foreground">{t.date}</td>
-                  <td className="px-4 py-3 text-[13px] font-medium text-foreground">{t.vendor}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium text-secondary-foreground">
-                      {t.category}
-                    </span>
-                  </td>
-                  <td className={`px-4 py-3 text-[13px] font-semibold ${t.amount.startsWith("+") ? "text-success" : "text-foreground"}`}>
-                    {t.amount}
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-muted-foreground">{t.account}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xxs font-medium ${
-                      t.status === "Completed" ? "bg-success/8 text-success" : "bg-warning/8 text-warning"
-                    }`}>
-                      {t.status}
-                    </span>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-muted-foreground">
+                    No transactions found. Add your first transaction above.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((t) => (
+                  <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
+                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{format(new Date(t.date), "MMM d, yyyy")}</td>
+                    <td className="px-4 py-3 text-[13px] font-medium text-foreground">{t.description || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium text-secondary-foreground">
+                        {t.category}
+                      </span>
+                    </td>
+                    <td className={`px-4 py-3 text-[13px] font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+                      {t.amount > 0 ? "+" : "-"}${formatCurrency(Number(t.amount))}
+                    </td>
+                    <td className="px-4 py-3 text-[13px] text-muted-foreground">
+                      {(t as any).accounts?.bank_name || "—"}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
