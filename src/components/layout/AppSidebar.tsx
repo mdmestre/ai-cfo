@@ -9,7 +9,8 @@ import {
   Bot,
   Settings,
   ChevronLeft,
-  HelpCircle,
+  PieChart,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -19,8 +20,10 @@ const navItems = [
   { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
   { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
-  { title: "Insights", url: "/insights", icon: Lightbulb },
+  { title: "Expense Analysis", url: "/expense-analysis", icon: PieChart },
+  { title: "Revenue Analysis", url: "/revenue-analysis", icon: BarChart3 },
   { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
+  { title: "Insights", url: "/insights", icon: Lightbulb },
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
 ];
 
@@ -39,7 +42,6 @@ export function AppSidebar() {
         collapsed ? "w-[64px]" : "w-[240px]"
       )}
     >
-      {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 px-4 border-b border-border">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent">
           <TrendingUp className="h-4 w-4 text-accent-foreground" />
@@ -51,8 +53,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2.5 py-3 space-y-0.5">
+      <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (
@@ -71,7 +72,6 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="border-t border-border px-2.5 py-3 space-y-0.5">
         {bottomItems.map((item) => {
           const isActive = location.pathname === item.url;
@@ -89,7 +89,6 @@ export function AppSidebar() {
             </Link>
           );
         })}
-
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="sidebar-item sidebar-item-inactive w-full"

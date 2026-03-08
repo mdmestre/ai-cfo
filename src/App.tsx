@@ -10,6 +10,8 @@ import Transactions from "./pages/Transactions";
 import Insights from "./pages/Insights";
 import FinancialScore from "./pages/FinancialScore";
 import AIAssistant from "./pages/AIAssistant";
+import ExpenseAnalysis from "./pages/ExpenseAnalysis";
+import RevenueAnalysis from "./pages/RevenueAnalysis";
 import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/cash-flow" element={<CashFlow />} />
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/expense-analysis" element={<ExpenseAnalysis />} />
+          <Route path="/revenue-analysis" element={<RevenueAnalysis />} />
           <Route path="/insights" element={<Insights />} />
           <Route path="/financial-score" element={<FinancialScore />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
