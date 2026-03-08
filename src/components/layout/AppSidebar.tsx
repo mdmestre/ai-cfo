@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import atlasLogo from "@/assets/atlas-logo.png";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -40,21 +41,25 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-200",
+        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar transition-all duration-200",
         collapsed ? "w-[64px]" : "w-[240px]"
       )}
     >
-      <div className="flex h-14 items-center gap-2.5 px-4 border-b border-border">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent">
-          <TrendingUp className="h-4 w-4 text-accent-foreground" />
-        </div>
-        {!collapsed && (
-          <span className="text-[15px] font-semibold text-foreground tracking-tight">
-            CFO AI
-          </span>
+      {/* Logo area — Stripe style */}
+      <div className="flex h-14 items-center gap-2.5 px-4">
+        {collapsed ? (
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent">
+            <span className="text-sm font-bold text-sidebar-primary">A</span>
+          </div>
+        ) : (
+          <img src={atlasLogo} alt="Atlas" className="h-6 brightness-0 invert" />
         )}
       </div>
 
+      {/* Divider */}
+      <div className="mx-3 border-t border-sidebar-border" />
+
+      {/* Nav */}
       <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
@@ -74,7 +79,8 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-border px-2.5 py-3 space-y-0.5">
+      {/* Bottom */}
+      <div className="border-t border-sidebar-border px-2.5 py-3 space-y-0.5">
         {bottomItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (

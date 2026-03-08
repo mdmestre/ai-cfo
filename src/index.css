@@ -6,43 +6,41 @@
 
 @layer base {
   :root {
-    /* CFO AI — Brex-Inspired Fintech Design System */
-    /* Pure white backgrounds like Brex */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 8%;
+    /* Atlas — Purple Fintech Design System */
+    --background: 0 0% 99%;
+    --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover-foreground: 240 10% 10%;
 
-    /* Primary: Near-black (Brex uses very dark charcoal) */
-    --primary: 0 0% 9%;
+    /* Primary: Deep Purple */
+    --primary: 258 60% 45%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Ultra-light gray */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
+    /* Secondary */
+    --secondary: 250 20% 96%;
+    --secondary-foreground: 258 60% 30%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 250 15% 95%;
+    --muted-foreground: 240 5% 46%;
 
-    /* Accent: Brex Orange */
-    --accent: 24 95% 53%;
+    /* Accent: Vibrant Purple */
+    --accent: 258 70% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Very subtle borders - Brex style */
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
-    --ring: 24 95% 53%;
+    --border: 250 15% 91%;
+    --input: 250 15% 91%;
+    --ring: 258 60% 55%;
 
     --radius: 0.5rem;
 
-    /* Semantic colors */
+    /* Semantic */
     --success: 152 69% 41%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -50,17 +48,18 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
-    /* Sidebar: Light/white like Brex */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 45%;
-    --sidebar-primary: 0 0% 9%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 95% 97%;
-    --sidebar-accent-foreground: 24 95% 40%;
-    --sidebar-border: 0 0% 94%;
-    --sidebar-ring: 24 95% 53%;
+    /* Sidebar: Dark like Stripe */
+    --sidebar-background: 258 55% 16%;
+    --sidebar-foreground: 258 20% 70%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 258 55% 16%;
+    --sidebar-accent: 258 40% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 258 40% 22%;
+    --sidebar-ring: 258 60% 55%;
+    --sidebar-muted: 258 20% 50%;
 
-    /* Shadows - very subtle, Brex-like */
+    /* Shadows */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
     --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
@@ -68,32 +67,32 @@
   }
 
   .dark {
-    --background: 0 0% 5%;
+    --background: 258 30% 6%;
     --foreground: 0 0% 96%;
-    --card: 0 0% 7%;
+    --card: 258 30% 9%;
     --card-foreground: 0 0% 96%;
-    --popover: 0 0% 7%;
+    --popover: 258 30% 9%;
     --popover-foreground: 0 0% 96%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 12%;
+    --primary: 258 60% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 258 30% 14%;
     --secondary-foreground: 0 0% 96%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-    --accent: 24 95% 53%;
+    --muted: 258 30% 14%;
+    --muted-foreground: 258 15% 55%;
+    --accent: 258 60% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 24 95% 53%;
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 55%;
+    --border: 258 30% 18%;
+    --input: 258 30% 18%;
+    --ring: 258 60% 55%;
+    --sidebar-background: 258 55% 10%;
+    --sidebar-foreground: 258 20% 60%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 24 95% 10%;
-    --sidebar-accent-foreground: 24 95% 60%;
-    --sidebar-border: 0 0% 12%;
+    --sidebar-primary-foreground: 258 55% 10%;
+    --sidebar-accent: 258 40% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 258 40% 15%;
   }
 }
 
@@ -114,12 +113,11 @@
 }
 
 @layer components {
-  /* Brex-style card — extremely subtle, almost flat */
   .metric-card {
     @apply bg-card rounded-lg border border-border p-6;
   }
 
-  /* Sidebar nav items — Brex style with left-accent on active */
+  /* Stripe-style sidebar items */
   .sidebar-item {
     @apply flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors duration-150;
   }
@@ -129,7 +127,7 @@
   }
 
   .sidebar-item-inactive {
-    @apply text-sidebar-foreground hover:text-sidebar-primary hover:bg-secondary;
+    @apply text-sidebar-foreground hover:text-sidebar-primary hover:bg-sidebar-accent/50;
   }
 
   /* Alert variants */
