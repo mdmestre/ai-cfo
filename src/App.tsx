@@ -12,6 +12,7 @@ import FinancialScore from "./pages/FinancialScore";
 import AIAssistant from "./pages/AIAssistant";
 import ExpenseAnalysis from "./pages/ExpenseAnalysis";
 import RevenueAnalysis from "./pages/RevenueAnalysis";
+import Automation from "./pages/Automation";
 import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
