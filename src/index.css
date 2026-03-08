@@ -6,106 +6,94 @@
 
 @layer base {
   :root {
-    /* CFO AI Fintech Design System - Brex Inspired */
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    /* CFO AI — Brex-Inspired Fintech Design System */
+    /* Pure white backgrounds like Brex */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 8%;
 
-    /* Primary: Deep Navy Blue */
-    --primary: 222 47% 11%;
+    /* Primary: Near-black (Brex uses very dark charcoal) */
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft Gray */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary: Ultra-light gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Accent: Fintech Green */
-    --accent: 160 84% 39%;
+    /* Accent: Brex Orange */
+    --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 222 47% 11%;
+    /* Very subtle borders - Brex style */
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 24 95% 53%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom tokens */
-    --success: 160 84% 39%;
+    /* Semantic colors */
+    --success: 152 69% 41%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
-    /* Sidebar */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 220 14% 80%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 18%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 47% 18%;
-    --sidebar-ring: 217 91% 60%;
+    /* Sidebar: Light/white like Brex */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 45%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 24 95% 97%;
+    --sidebar-accent-foreground: 24 95% 40%;
+    --sidebar-border: 0 0% 94%;
+    --sidebar-ring: 24 95% 53%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(222 47% 20%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 84% 45%) 100%);
-    --gradient-score: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(217 91% 60%) 100%);
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    /* Shadows - very subtle, Brex-like */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+    --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.03), 0 1px 3px 0 rgb(0 0 0 / 0.04);
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 220 14% 96%;
-
-    --card: 222 47% 8%;
-    --card-foreground: 220 14% 96%;
-
-    --popover: 222 47% 8%;
-    --popover-foreground: 220 14% 96%;
-
+    --background: 0 0% 5%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
     --primary: 0 0% 100%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 222 47% 15%;
-    --secondary-foreground: 220 14% 96%;
-
-    --muted: 222 47% 15%;
-    --muted-foreground: 220 14% 60%;
-
-    --accent: 160 84% 39%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
+    --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 222 47% 18%;
-    --input: 222 47% 18%;
-    --ring: 217 91% 60%;
-
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 220 14% 80%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 24 95% 53%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 55%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 12%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 47% 15%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 24 95% 10%;
+    --sidebar-accent-foreground: 24 95% 60%;
+    --sidebar-border: 0 0% 12%;
   }
 }
 
@@ -115,45 +103,25 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground;
   }
 }
 
 @layer components {
-  .card-elevated {
-    @apply bg-card rounded-xl border border-border shadow-sm transition-shadow duration-200 hover:shadow-md;
-  }
-
+  /* Brex-style card — extremely subtle, almost flat */
   .metric-card {
-    @apply bg-card rounded-xl border border-border p-6 shadow-sm;
+    @apply bg-card rounded-lg border border-border p-6;
   }
 
-  .score-ring {
-    @apply relative flex items-center justify-center;
-  }
-
-  .financial-alert {
-    @apply flex items-start gap-3 p-4 rounded-lg border;
-  }
-
-  .alert-warning {
-    @apply bg-warning/10 border-warning/20 text-foreground;
-  }
-
-  .alert-success {
-    @apply bg-accent/10 border-accent/20 text-foreground;
-  }
-
-  .alert-info {
-    @apply bg-info/10 border-info/20 text-foreground;
-  }
-
+  /* Sidebar nav items — Brex style with left-accent on active */
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-colors duration-150;
   }
 
   .sidebar-item-active {
@@ -161,21 +129,34 @@
   }
 
   .sidebar-item-inactive {
-    @apply text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground;
+    @apply text-sidebar-foreground hover:text-sidebar-primary hover:bg-secondary;
+  }
+
+  /* Alert variants */
+  .financial-alert {
+    @apply flex items-start gap-3 p-3.5 rounded-lg;
+  }
+
+  .alert-warning {
+    @apply bg-warning/5 text-foreground;
+  }
+
+  .alert-success {
+    @apply bg-success/5 text-foreground;
+  }
+
+  .alert-info {
+    @apply bg-info/5 text-foreground;
   }
 }
 
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.2s ease-out;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s ease-out;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
+    animation: slideUp 0.3s ease-out;
   }
 
   @keyframes fadeIn {
@@ -184,28 +165,7 @@
   }
 
   @keyframes slideUp {
-    from { 
-      opacity: 0; 
-      transform: translateY(10px); 
-    }
-    to { 
-      opacity: 1; 
-      transform: translateY(0); 
-    }
-  }
-
-  @keyframes scaleIn {
-    from { 
-      opacity: 0; 
-      transform: scale(0.95); 
-    }
-    to { 
-      opacity: 1; 
-      transform: scale(1); 
-    }
-  }
-
-  .text-balance {
-    text-wrap: balance;
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
