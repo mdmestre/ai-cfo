@@ -9,6 +9,7 @@ import {
   Bot,
   Settings,
   ChevronLeft,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -34,24 +35,24 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar transition-all duration-300",
-        collapsed ? "w-[72px]" : "w-[260px]"
+        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-200",
+        collapsed ? "w-[64px]" : "w-[240px]"
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent">
-          <TrendingUp className="h-5 w-5 text-accent-foreground" />
+      <div className="flex h-14 items-center gap-2.5 px-4 border-b border-border">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent">
+          <TrendingUp className="h-4 w-4 text-accent-foreground" />
         </div>
         {!collapsed && (
-          <span className="text-lg font-semibold text-sidebar-primary animate-fade-in">
+          <span className="text-[15px] font-semibold text-foreground tracking-tight">
             CFO AI
           </span>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 px-2.5 py-3 space-y-0.5">
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (
@@ -63,7 +64,7 @@ export function AppSidebar() {
                 isActive ? "sidebar-item-active" : "sidebar-item-inactive"
               )}
             >
-              <item.icon className="h-5 w-5 shrink-0" />
+              <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-accent")} />
               {!collapsed && <span>{item.title}</span>}
             </Link>
           );
@@ -71,7 +72,7 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-sidebar-border px-3 py-4 space-y-1">
+      <div className="border-t border-border px-2.5 py-3 space-y-0.5">
         {bottomItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (
@@ -83,20 +84,19 @@ export function AppSidebar() {
                 isActive ? "sidebar-item-active" : "sidebar-item-inactive"
               )}
             >
-              <item.icon className="h-5 w-5 shrink-0" />
+              <item.icon className="h-[18px] w-[18px] shrink-0" />
               {!collapsed && <span>{item.title}</span>}
             </Link>
           );
         })}
 
-        {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="sidebar-item sidebar-item-inactive w-full"
         >
           <ChevronLeft
             className={cn(
-              "h-5 w-5 shrink-0 transition-transform duration-200",
+              "h-[18px] w-[18px] shrink-0 transition-transform duration-200",
               collapsed && "rotate-180"
             )}
           />
