@@ -18,12 +18,15 @@ import AIAssistant from "./pages/AIAssistant";
 import ExpenseAnalysis from "./pages/ExpenseAnalysis";
 import RevenueAnalysis from "./pages/RevenueAnalysis";
 import Automation from "./pages/Automation";
+import AutomationPage from "./pages/AutomationPage";
 import Team from "./pages/Team";
 import SettingsPage from "./pages/Settings";
 import Ledger from "./pages/Ledger";
 import Expenses from "./pages/Expenses";
 import CardsPage from "./pages/Cards";
 import Invoices from "./pages/Invoices";
+import SavingsIntelligence from "./pages/SavingsIntelligence";
+import RiskDashboard from "./pages/RiskDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
