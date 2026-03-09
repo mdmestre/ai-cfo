@@ -27,6 +27,7 @@ import CardsPage from "./pages/Cards";
 import Invoices from "./pages/Invoices";
 import SavingsIntelligence from "./pages/SavingsIntelligence";
 import RiskDashboard from "./pages/RiskDashboard";
+import Treasury from "./pages/Treasury";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
