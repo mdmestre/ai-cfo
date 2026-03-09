@@ -19,26 +19,45 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import atlasLogo from "@/assets/atlas-logo.png";
 
-const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
-  { title: "Accounts", url: "/accounts", icon: Building2 },
-  { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
-  { title: "Ledger", url: "/ledger", icon: BookOpen },
-  { title: "Payments Hub", url: "/payments", icon: Wallet },
-  { title: "Expenses", url: "/expenses", icon: Receipt },
-  { title: "Cards", url: "/cards", icon: CreditCard },
-  { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Insights", url: "/insights", icon: Lightbulb },
-  { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
-  { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
-  { title: "Automation", url: "/automation", icon: Zap },
-  { title: "Team", url: "/team", icon: Users },
+const navSections = [
+  {
+    label: "Overview",
+    items: [
+      { title: "Dashboard", url: "/", icon: LayoutDashboard },
+      { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "Money",
+    items: [
+      { title: "Accounts", url: "/accounts", icon: Building2 },
+      { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
+      { title: "Payments", url: "/payments", icon: Wallet },
+      { title: "Cards", url: "/cards", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Billing",
+    items: [
+      { title: "Invoices", url: "/invoices", icon: FileText },
+      { title: "Expenses", url: "/expenses", icon: Receipt },
+      { title: "Ledger", url: "/ledger", icon: BookOpen },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { title: "Insights", url: "/insights", icon: Lightbulb },
+      { title: "Score", url: "/financial-score", icon: ShieldCheck },
+      { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
+      { title: "Automation", url: "/automation", icon: Zap },
+    ],
+  },
 ];
 
 const bottomItems = [
+  { title: "Team", url: "/team", icon: Users },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -50,45 +69,59 @@ export function AppSidebar() {
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar transition-all duration-200",
-        collapsed ? "w-[64px]" : "w-[240px]"
+        collapsed ? "w-[60px]" : "w-[220px]"
       )}
     >
-      {/* Logo area — Stripe style */}
-      <div className="flex h-14 items-center gap-2.5 px-4">
+      {/* Logo */}
+      <div className="flex h-14 items-center px-4">
         {collapsed ? (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent">
-            <span className="text-sm font-bold text-sidebar-primary">A</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
+            <span className="text-[11px] font-bold text-accent-foreground">A</span>
           </div>
         ) : (
-          <img src={atlasLogo} alt="Atlas" className="h-6 brightness-0 invert" />
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent">
+              <span className="text-[11px] font-bold text-accent-foreground">A</span>
+            </div>
+            <span className="text-[15px] font-semibold text-sidebar-primary tracking-tight">Atlas</span>
+          </div>
         )}
       </div>
 
-      {/* Divider */}
-      <div className="mx-3 border-t border-sidebar-border" />
-
-      {/* Nav */}
-      <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.url;
-          return (
-            <Link
-              key={item.title}
-              to={item.url}
-              className={cn(
-                "sidebar-item",
-                isActive ? "sidebar-item-active" : "sidebar-item-inactive"
-              )}
-            >
-              <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-accent")} />
-              {!collapsed && <span>{item.title}</span>}
-            </Link>
-          );
-        })}
+      {/* Nav sections */}
+      <nav className="flex-1 px-2.5 py-1 overflow-y-auto space-y-4">
+        {navSections.map((section) => (
+          <div key={section.label}>
+            {!collapsed && (
+              <p className="px-3 pb-1.5 pt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-muted">
+                {section.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.url}
+                    title={collapsed ? item.title : undefined}
+                    className={cn(
+                      "sidebar-item",
+                      isActive ? "sidebar-item-active" : "sidebar-item-inactive"
+                    )}
+                  >
+                    <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-accent")} />
+                    {!collapsed && <span>{item.title}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-sidebar-border px-2.5 py-3 space-y-0.5">
+      <div className="border-t border-sidebar-border px-2.5 py-2.5 space-y-0.5">
         {bottomItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (
@@ -100,7 +133,7 @@ export function AppSidebar() {
                 isActive ? "sidebar-item-active" : "sidebar-item-inactive"
               )}
             >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
+              <item.icon className="h-4 w-4 shrink-0" />
               {!collapsed && <span>{item.title}</span>}
             </Link>
           );
@@ -111,11 +144,11 @@ export function AppSidebar() {
         >
           <ChevronLeft
             className={cn(
-              "h-[18px] w-[18px] shrink-0 transition-transform duration-200",
+              "h-4 w-4 shrink-0 transition-transform duration-200",
               collapsed && "rotate-180"
             )}
           />
-          {!collapsed && <span>Collapse</span>}
+          {!collapsed && <span className="text-[12px]">Collapse</span>}
         </button>
       </div>
     </aside>

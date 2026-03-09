@@ -14,41 +14,41 @@ export function TopNavbar() {
     : "??";
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background px-6">
-      <div className="flex items-center gap-2.5 rounded-md bg-secondary px-3 py-1.5 w-full max-w-sm">
+    <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-border/60 bg-card/80 backdrop-blur-sm px-8">
+      {/* Search */}
+      <div className="flex items-center gap-2 rounded-lg bg-background border border-border/50 px-3 py-1.5 w-full max-w-xs">
         <Search className="h-3.5 w-3.5 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search..."
-          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+          className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
         />
-        <kbd className="hidden rounded bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground border border-border sm:inline-block">
+        <kbd className="hidden rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-block">
           ⌘K
         </kbd>
       </div>
 
-      <div className="flex items-center gap-2 ml-4">
-        <button className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
-          <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10">
-            <Building className="h-3.5 w-3.5 text-primary" />
-          </div>
-          <span className="hidden sm:inline text-[13px]">{company?.name || "Company"}</span>
+      {/* Right side */}
+      <div className="flex items-center gap-1.5 ml-4">
+        <button className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">
+          <Building className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="hidden sm:inline">{company?.name || "Company"}</span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>
 
-        <div className="h-5 w-px bg-border mx-1" />
+        <div className="h-4 w-px bg-border mx-1" />
 
-        <button className="relative rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+        <button className="relative rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
           <Bell className="h-4 w-4" />
         </button>
 
-        <button className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity">
+        <button className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-[11px] font-semibold hover:opacity-80 transition-opacity">
           {initials}
         </button>
 
         <button
           onClick={signOut}
-          className="rounded-md p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           title="Sign out"
         >
           <LogOut className="h-4 w-4" />
