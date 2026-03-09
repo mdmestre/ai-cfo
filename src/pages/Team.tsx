@@ -5,6 +5,9 @@ import {
   UserPlus, Shield, Mail, Loader2, Star, Crown, Eye, Users, Trash2, ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ROLE_CONFIG: Record<AppRole, { label: string; icon: any; color: string; desc: string }> = {
   owner: { label: "Proprietário", icon: Crown, color: "bg-primary text-primary-foreground", desc: "Controle total da empresa" },
