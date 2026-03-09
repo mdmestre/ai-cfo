@@ -305,7 +305,7 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xxs font-medium ${s.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                     }`}>
                     {s.status === "active" ? <CheckCircle2 className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
-                    {s.status === "active" ? "Active" : "Paused"}
+                    {s.status === "active" ? "Ativo" : "Pausado"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
