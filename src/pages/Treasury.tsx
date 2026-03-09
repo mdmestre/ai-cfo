@@ -179,20 +179,78 @@ export default function Treasury() {
           <div className="metric-card animate-slide-up space-y-3">
             <h3 className="text-[14px] font-semibold text-foreground">Novo Produto de Rendimento</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <input value={prodForm.name} onChange={(e) => setProdForm({ ...prodForm, name: e.target.value })} placeholder="Nome do produto" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <select value={prodForm.product_type} onChange={(e) => setProdForm({ ...prodForm, product_type: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground">
-                {Object.entries(typeLabels).filter(([k]) => k !== "cash").map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-              <input value={prodForm.institution} onChange={(e) => setProdForm({ ...prodForm, institution: e.target.value })} placeholder="Instituição" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <input value={prodForm.annual_rate} onChange={(e) => setProdForm({ ...prodForm, annual_rate: e.target.value })} placeholder="Taxa % a.a." type="number" step="0.01" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <input value={prodForm.min_investment} onChange={(e) => setProdForm({ ...prodForm, min_investment: e.target.value })} placeholder="Investimento mínimo" type="number" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <input value={prodForm.liquidity_days} onChange={(e) => setProdForm({ ...prodForm, liquidity_days: e.target.value })} placeholder="Liquidez (dias)" type="number" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <select value={prodForm.risk_level} onChange={(e) => setProdForm({ ...prodForm, risk_level: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground">
-                <option value="low">Risco Baixo</option>
-                <option value="medium">Risco Médio</option>
-                <option value="high">Risco Alto</option>
-              </select>
-              <input value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} placeholder="Descrição" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
+              <div className="col-span-2 sm:col-span-1">
+                <Label className="text-[11px] text-muted-foreground mb-1">Nome</Label>
+                <Input value={prodForm.name} onChange={(e) => setProdForm({ ...prodForm, name: e.target.value })} placeholder="Nome do produto" className="h-9 text-[13px]" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Tipo</Label>
+                <Select value={prodForm.product_type} onValueChange={(v) => setProdForm({ ...prodForm, product_type: v })}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(typeLabels).filter(([k]) => k !== "cash").map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Instituição</Label>
+                <Input value={prodForm.institution} onChange={(e) => setProdForm({ ...prodForm, institution: e.target.value })} placeholder="Nome do banco" className="h-9 text-[13px]" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Taxa % a.a.</Label>
+                <Input 
+                  value={prodForm.annual_rate} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    setProdForm({ ...prodForm, annual_rate: val });
+                  }} 
+                  placeholder="0,00" 
+                  className="h-9 text-[13px]"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Investimento mínimo (R$)</Label>
+                <Input 
+                  value={prodForm.min_investment} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    setProdForm({ ...prodForm, min_investment: val });
+                  }} 
+                  placeholder="0,00" 
+                  className="h-9 text-[13px]"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Liquidez (dias)</Label>
+                <Input 
+                  value={prodForm.liquidity_days} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setProdForm({ ...prodForm, liquidity_days: val });
+                  }} 
+                  placeholder="0" 
+                  className="h-9 text-[13px]"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Risco</Label>
+                <Select value={prodForm.risk_level} onValueChange={(v) => setProdForm({ ...prodForm, risk_level: v })}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Risco Baixo</SelectItem>
+                    <SelectItem value="medium">Risco Médio</SelectItem>
+                    <SelectItem value="high">Risco Alto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <Label className="text-[11px] text-muted-foreground mb-1">Descrição</Label>
+                <Input value={prodForm.description} onChange={(e) => setProdForm({ ...prodForm, description: e.target.value })} placeholder="Detalhes do produto" className="h-9 text-[13px]" />
+              </div>
             </div>
             <button onClick={handleCreateProduct} disabled={createProduct.isPending} className="rounded-lg bg-foreground px-4 py-2 text-[13px] font-semibold text-background hover:bg-foreground/90">
               {createProduct.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Adicionar Produto"}
