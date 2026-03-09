@@ -24,13 +24,13 @@ const navItems = [
   { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
   { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
+  { title: "Ledger", url: "/ledger", icon: BookOpen },
+  { title: "Payments Hub", url: "/payments", icon: CreditCard },
   { title: "Insights", url: "/insights", icon: Lightbulb },
   { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
   { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
   { title: "Automation", url: "/automation", icon: Zap },
-  { title: "Payments Hub", url: "/payments", icon: CreditCard },
   { title: "Team", url: "/team", icon: Users },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
 const bottomItems = [
