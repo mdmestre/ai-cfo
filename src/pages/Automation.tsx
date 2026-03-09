@@ -79,7 +79,7 @@ const defaultAlertRules: AlertRule[] = [
 
 type Tab = "subscriptions" | "payments" | "alerts";
 
-const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
+const formatCurrency = (value: number) => `R$ ${value.toLocaleString("pt-BR")}`;
 
 const Automation = () => {
   const [activeTab, setActiveTab] = useState<Tab>("subscriptions");
