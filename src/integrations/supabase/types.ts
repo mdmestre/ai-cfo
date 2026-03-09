@@ -141,6 +141,113 @@ export type Database = {
           },
         ]
       }
+      card_transactions: {
+        Row: {
+          amount: number
+          card_id: string
+          category: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          merchant: string
+          status: string
+          transaction_date: string
+        }
+        Insert: {
+          amount: number
+          card_id: string
+          category?: string
+          company_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          merchant: string
+          status?: string
+          transaction_date?: string
+        }
+        Update: {
+          amount?: number
+          card_id?: string
+          category?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          merchant?: string
+          status?: string
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cards: {
+        Row: {
+          card_type: string
+          company_id: string
+          created_at: string
+          expires_at: string | null
+          holder_name: string
+          holder_user_id: string
+          id: string
+          last_four: string
+          spending_limit: number
+          spent_current_month: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          card_type?: string
+          company_id: string
+          created_at?: string
+          expires_at?: string | null
+          holder_name: string
+          holder_user_id: string
+          id?: string
+          last_four?: string
+          spending_limit?: number
+          spent_current_month?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          card_type?: string
+          company_id?: string
+          created_at?: string
+          expires_at?: string | null
+          holder_name?: string
+          holder_user_id?: string
+          id?: string
+          last_four?: string
+          spending_limit?: number
+          spent_current_month?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashflow_forecasts: {
         Row: {
           company_id: string
@@ -193,6 +300,212 @@ export type Database = {
           owner_id?: string
         }
         Relationships: []
+      }
+      expense_categories: {
+        Row: {
+          budget_limit: number | null
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          budget_limit?: number | null
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          budget_limit?: number | null
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_claim_items: {
+        Row: {
+          claim_id: string
+          created_at: string
+          expense_id: string
+          id: string
+        }
+        Insert: {
+          claim_id: string
+          created_at?: string
+          expense_id: string
+          id?: string
+        }
+        Update: {
+          claim_id?: string
+          created_at?: string
+          expense_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_claim_items_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "expense_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_claim_items_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_claims: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          company_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          submitted_by: string
+          title: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_by: string
+          title: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          submitted_by?: string
+          title?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_claims_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          category_id: string | null
+          company_id: string
+          created_at: string
+          currency: string
+          description: string
+          expense_date: string
+          id: string
+          merchant: string | null
+          notes: string | null
+          receipt_url: string | null
+          status: string
+          submitted_by: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          category_id?: string | null
+          company_id: string
+          created_at?: string
+          currency?: string
+          description?: string
+          expense_date?: string
+          id?: string
+          merchant?: string | null
+          notes?: string | null
+          receipt_url?: string | null
+          status?: string
+          submitted_by: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          category_id?: string | null
+          company_id?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          expense_date?: string
+          id?: string
+          merchant?: string | null
+          notes?: string | null
+          receipt_url?: string | null
+          status?: string
+          submitted_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal_entries: {
         Row: {
