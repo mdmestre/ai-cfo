@@ -5,20 +5,17 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Bot, User, Send, X, MessageSquare, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Message {
-    role: 'user' | 'assistant';
-    content: string;
-}
+import { streamChat, type AiMessage } from '@/lib/ai-stream';
+import { toast } from 'sonner';
 
 export function AICopilot() {
     const { company } = useCompany();
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState<Message[]>([
+    const [messages, setMessages] = useState<AiMessage[]>([
         { role: 'assistant', content: "Hi! I'm Atlas AI, your dedicated CFO. How can I help you with your finances today?" }
     ]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isStreaming, setIsStreaming] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -28,35 +25,36 @@ export function AICopilot() {
     }, [messages]);
 
     const handleSend = async () => {
-        if (!message.trim() || !company) return;
+        if (!message.trim() || !company || isStreaming) return;
 
-        const userMsg = message.trim();
+        const userMsg: AiMessage = { role: 'user', content: message.trim() };
         setMessage('');
-        setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
-        setIsLoading(true);
+        setMessages(prev => [...prev, userMsg]);
+        setIsStreaming(true);
+
+        let assistantSoFar = '';
+        const upsert = (chunk: string) => {
+            assistantSoFar += chunk;
+            setMessages(prev => {
+                const last = prev[prev.length - 1];
+                if (last?.role === 'user') {
+                    return [...prev, { role: 'assistant' as const, content: assistantSoFar }];
+                }
+                return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+            });
+        };
 
         try {
-            const response = await fetch('http://localhost:3001/api/ai/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    companyId: company.id,
-                    message: userMsg
-                })
+            await streamChat({
+                messages: [...messages, userMsg],
+                companyId: company.id,
+                onDelta: upsert,
+                onDone: () => setIsStreaming(false),
+                onError: (err) => { toast.error(err); setIsStreaming(false); },
             });
-
-            const data = await response.json();
-            if (response.ok && data.reply) {
-                setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
-            } else {
-                const errMsg = data.error || 'The AI assistant is temporarily unavailable.';
-                setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errMsg}` }]);
-            }
-        } catch (error) {
-            console.error('AI Network Error:', error);
-            setMessages(prev => [...prev, { role: 'assistant', content: "Network error: Could not reach the AI server. Please ensure the backend is running on port 3001." }]);
-        } finally {
-            setIsLoading(false);
+        } catch {
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Network error. Please try again.' }]);
+            setIsStreaming(false);
         }
     };
 
@@ -73,7 +71,6 @@ export function AICopilot() {
 
             {isOpen && (
                 <Card className="w-96 h-[500px] flex flex-col shadow-2xl animate-slide-up border-primary/20 bg-background/95 backdrop-blur-sm">
-                    {/* Header */}
                     <div className="p-4 border-b bg-primary text-primary-foreground flex items-center justify-between rounded-t-lg">
                         <div className="flex items-center gap-2">
                             <Sparkles className="h-5 w-5 text-yellow-400" />
@@ -84,7 +81,6 @@ export function AICopilot() {
                         </Button>
                     </div>
 
-                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
                         {messages.map((msg, i) => (
                             <div key={i} className={cn("flex gap-3 animate-fade-in", msg.role === 'user' ? "flex-row-reverse" : "flex-row")}>
@@ -98,18 +94,24 @@ export function AICopilot() {
                                     "p-3 rounded-2xl text-[13px] leading-relaxed max-w-[80%] shadow-sm",
                                     msg.role === 'user'
                                         ? "bg-primary text-primary-foreground rounded-tr-none"
-                                        : "bg-white border text-foreground rounded-tl-none font-medium"
+                                        : "bg-card border text-foreground rounded-tl-none font-medium"
                                 )}>
-                                    {msg.content}
+                                    {msg.content.split("\n").map((line, j) => (
+                                        <p key={j} className={j > 0 ? "mt-1.5" : ""}>
+                                            {line.split("**").map((part, k) =>
+                                                k % 2 === 1 ? <strong key={k}>{part}</strong> : <span key={k}>{part}</span>
+                                            )}
+                                        </p>
+                                    ))}
                                 </div>
                             </div>
                         ))}
-                        {isLoading && (
+                        {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
                             <div className="flex gap-3 animate-fade-in">
                                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
                                     <Bot className="h-4 w-4" />
                                 </div>
-                                <div className="p-3 rounded-2xl bg-white border flex items-center gap-2 rounded-tl-none shadow-sm">
+                                <div className="p-3 rounded-2xl bg-card border flex items-center gap-2 rounded-tl-none shadow-sm">
                                     <Loader2 className="h-3 w-3 animate-spin text-primary" />
                                     <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Thinking</span>
                                 </div>
@@ -117,17 +119,16 @@ export function AICopilot() {
                         )}
                     </div>
 
-                    {/* Input */}
                     <div className="p-4 border-t flex gap-2">
                         <Input
                             placeholder="Ask me anything..."
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            disabled={isLoading}
+                            disabled={isStreaming}
                             className="bg-secondary/30"
                         />
-                        <Button size="icon" onClick={handleSend} disabled={isLoading || !message.trim()}>
+                        <Button size="icon" onClick={handleSend} disabled={isStreaming || !message.trim()}>
                             <Send className="h-4 w-4" />
                         </Button>
                     </div>
