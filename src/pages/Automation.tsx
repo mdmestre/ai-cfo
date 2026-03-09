@@ -108,13 +108,13 @@ const Automation = () => {
       <div className="max-w-[1200px] space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Automation OS</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">Financial guardrails and automated cash flow management</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Automação Financeira</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Regras financeiras e gestão automatizada de fluxo de caixa</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-white px-3 py-2 text-[13px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm">
+            <button className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 py-2 text-[13px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm">
               <Settings className="h-3.5 w-3.5" />
-              Settings
+              Configurações
             </button>
           </div>
         </div>
