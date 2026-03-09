@@ -81,6 +81,7 @@ function AppRoutes() {
       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
       <Route path="/savings" element={<ProtectedRoute><SavingsIntelligence /></ProtectedRoute>} />
       <Route path="/risk" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
+      <Route path="/treasury" element={<ProtectedRoute><Treasury /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
