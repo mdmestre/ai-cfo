@@ -7,10 +7,10 @@ import {
 import { useState } from "react";
 
 const ROLE_CONFIG: Record<AppRole, { label: string; icon: any; color: string; desc: string }> = {
-  owner: { label: "Owner", icon: Crown, color: "bg-primary text-primary-foreground", desc: "Full control over company" },
-  admin: { label: "Admin", icon: Shield, color: "bg-accent text-accent-foreground", desc: "Manage team & settings" },
-  member: { label: "Member", icon: Users, color: "bg-secondary text-secondary-foreground", desc: "View & create records" },
-  viewer: { label: "Viewer", icon: Eye, color: "bg-muted text-muted-foreground", desc: "Read-only access" },
+  owner: { label: "Proprietário", icon: Crown, color: "bg-primary text-primary-foreground", desc: "Controle total da empresa" },
+  admin: { label: "Admin", icon: Shield, color: "bg-accent text-accent-foreground", desc: "Gerencia equipe e configurações" },
+  member: { label: "Membro", icon: Users, color: "bg-secondary text-secondary-foreground", desc: "Visualiza e cria registros" },
+  viewer: { label: "Leitor", icon: Eye, color: "bg-muted text-muted-foreground", desc: "Acesso somente leitura" },
 };
 
 const ASSIGNABLE_ROLES: AppRole[] = ["admin", "member", "viewer"];
@@ -34,18 +34,18 @@ const Team = () => {
     <AppLayout>
       <div className="max-w-[1000px] space-y-6">
         <div>
-          <h1 className="text-[20px] font-bold text-foreground tracking-tight">Team & Access</h1>
+          <h1 className="text-[20px] font-bold text-foreground tracking-tight">Equipe & Acesso</h1>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Manage members, roles, and permissions for your company.
+            Gerencie membros, funções e permissões da sua empresa.
             {currentRole && (
               <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase text-foreground">
-                Your role: {currentRole}
+                Sua função: {ROLE_CONFIG[currentRole]?.label || currentRole}
               </span>
             )}
           </p>
         </div>
 
-        {/* Role Legend */}
+        {/* Legenda de Funções */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {(Object.entries(ROLE_CONFIG) as [AppRole, typeof ROLE_CONFIG["owner"]][]).map(([key, cfg]) => {
             const Icon = cfg.icon;
@@ -64,27 +64,27 @@ const Team = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Invite Card */}
+          {/* Card de Convite */}
           {isAdmin && (
             <div className="lg:col-span-1">
               <div className="metric-card space-y-4">
                 <h2 className="text-[13px] font-bold text-foreground flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  Add Member
+                  Adicionar Membro
                 </h2>
                 <form onSubmit={handleInvite} className="space-y-3">
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Email</label>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="colleague@company.com"
+                      placeholder="colega@empresa.com"
                       className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Função</label>
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value as AppRole)}
@@ -100,19 +100,19 @@ const Team = () => {
                     disabled={inviteMember.isPending || !email}
                     className="w-full flex items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-[13px] font-semibold text-background hover:bg-foreground/90 transition-all disabled:opacity-50"
                   >
-                    {inviteMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Member"}
+                    {inviteMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Adicionar Membro"}
                   </button>
                 </form>
               </div>
             </div>
           )}
 
-          {/* Members List */}
+          {/* Lista de Membros */}
           <div className={isAdmin ? "lg:col-span-2" : "lg:col-span-3"}>
             <div className="overflow-hidden rounded-xl border border-border bg-background">
               <div className="border-b border-border px-5 py-3 flex items-center justify-between bg-secondary/30">
-                <h2 className="text-[13px] font-bold text-foreground">Members</h2>
-                <span className="text-[11px] font-semibold text-muted-foreground">{members.length} total</span>
+                <h2 className="text-[13px] font-bold text-foreground">Membros</h2>
+                <span className="text-[11px] font-semibold text-muted-foreground">{members.length} no total</span>
               </div>
 
               {isLoading ? (
@@ -120,7 +120,7 @@ const Team = () => {
               ) : members.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Users className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                  <p className="text-[13px] text-muted-foreground">No members yet</p>
+                  <p className="text-[13px] text-muted-foreground">Nenhum membro ainda</p>
                 </div>
               ) : (
                 <div className="divide-y divide-border">
@@ -129,7 +129,7 @@ const Team = () => {
                     const Icon = cfg.icon;
                     const isOwnerRow = m.role === "owner";
                     const isSelf = m.user_id === user?.id;
-                    const profileName = (m as any).profiles?.name || m.invited_email || "Unknown";
+                    const profileName = (m as any).profiles?.name || m.invited_email || "Desconhecido";
                     const profileEmail = (m as any).profiles?.email || m.invited_email || "";
 
                     return (
@@ -141,7 +141,7 @@ const Team = () => {
                           <div className="flex items-center gap-2">
                             <p className="text-[13px] font-semibold text-foreground truncate">
                               {profileName}
-                              {isSelf && <span className="ml-1 text-[10px] text-muted-foreground">(you)</span>}
+                              {isSelf && <span className="ml-1 text-[10px] text-muted-foreground">(você)</span>}
                             </p>
                             {isOwnerRow && <Star className="h-3 w-3 fill-primary text-primary" />}
                           </div>
@@ -182,7 +182,7 @@ const Team = () => {
                             <button
                               onClick={() => removeMember.mutate(m.id)}
                               className="rounded-lg p-1.5 text-muted-foreground/30 hover:bg-destructive/10 hover:text-destructive transition-all opacity-0 group-hover:opacity-100"
-                              title="Remove member"
+                              title="Remover membro"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -195,15 +195,15 @@ const Team = () => {
               )}
             </div>
 
-            {/* Permissions Info */}
+            {/* Info de Permissões */}
             <div className="mt-4 flex items-start gap-4 p-4 rounded-xl border border-border bg-secondary/10">
               <Shield className="h-5 w-5 text-accent mt-0.5 shrink-0" />
               <div>
-                <p className="text-[12px] font-semibold text-foreground">Access Control</p>
+                <p className="text-[12px] font-semibold text-foreground">Controle de Acesso</p>
                 <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                  <strong>Owners</strong> have full control. <strong>Admins</strong> can manage team and settings.
-                  <strong> Members</strong> can create and edit records. <strong>Viewers</strong> have read-only access.
-                  All data access is enforced at the database level via row-level security.
+                  <strong>Proprietários</strong> têm controle total. <strong>Admins</strong> gerenciam equipe e configurações.
+                  <strong> Membros</strong> podem criar e editar registros. <strong>Leitores</strong> têm acesso somente leitura.
+                  Todo acesso é aplicado no banco de dados via row-level security.
                 </p>
               </div>
             </div>
