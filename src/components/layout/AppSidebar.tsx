@@ -89,7 +89,7 @@ export function AppSidebar() {
       </div>
 
       {/* Nav sections */}
-      <nav className="flex-1 px-2.5 py-1 overflow-y-auto space-y-4">
+      <nav className="flex-1 px-2.5 py-1 overflow-y-auto space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {navSections.map((section) => (
           <div key={section.label}>
             {!collapsed && (
