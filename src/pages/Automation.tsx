@@ -326,25 +326,25 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
 function PaymentsTab() {
   return (
     <div className="space-y-6">
-      {/* Optimization Banner */}
+      {/* Banner de Otimização */}
       <div className="flex items-start gap-3 rounded-lg border border-accent/20 bg-accent/5 p-4">
         <Zap className="h-4 w-4 text-accent mt-0.5 shrink-0" />
         <div>
-          <p className="text-[13px] font-medium text-foreground">Smart Payment Optimization Active</p>
+          <p className="text-[13px] font-medium text-foreground">Otimização Inteligente de Pagamentos Ativa</p>
           <p className="text-xxs text-muted-foreground mt-0.5">
-            AI has identified 4 payments that can be deferred to optimize cash position, saving an estimated <span className="font-semibold text-foreground">$225/month</span> in float costs.
+            A IA identificou 4 pagamentos que podem ser adiados para otimizar a posição de caixa, economizando aproximadamente <span className="font-semibold text-foreground">R$ 225/mês</span> em custos de float.
           </p>
         </div>
       </div>
 
-      {/* Payment Schedule */}
+      {/* Agenda de Pagamentos */}
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-          <p className="text-[13px] font-medium text-foreground">Upcoming Payment Schedule</p>
+          <p className="text-[13px] font-medium text-foreground">Agenda de Pagamentos</p>
           <div className="flex gap-2 text-xxs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" />Critical</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-accent" />Optimized</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground" />Fixed</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" />Crítico</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-accent" />Otimizado</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground" />Fixo</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground" />Normal</span>
           </div>
         </div>
