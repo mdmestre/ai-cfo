@@ -52,6 +52,95 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          company_id: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          company_id: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      balance_snapshots: {
+        Row: {
+          balance: number
+          company_id: string
+          created_at: string
+          id: string
+          ledger_account_id: string
+          snapshot_date: string
+        }
+        Insert: {
+          balance: number
+          company_id: string
+          created_at?: string
+          id?: string
+          ledger_account_id: string
+          snapshot_date: string
+        }
+        Update: {
+          balance?: number
+          company_id?: string
+          created_at?: string
+          id?: string
+          ledger_account_id?: string
+          snapshot_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_snapshots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_snapshots_ledger_account_id_fkey"
+            columns: ["ledger_account_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashflow_forecasts: {
         Row: {
           company_id: string
@@ -104,6 +193,306 @@ export type Database = {
           owner_id?: string
         }
         Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string
+          entry_date: string
+          id: string
+          reference: string | null
+          reversed_by: string | null
+          status: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          description?: string
+          entry_date?: string
+          id?: string
+          reference?: string | null
+          reversed_by?: string | null
+          status?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          entry_date?: string
+          id?: string
+          reference?: string | null
+          reversed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_reversed_by_fkey"
+            columns: ["reversed_by"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_accounts: {
+        Row: {
+          account_type: string
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          parent_id: string | null
+        }
+        Insert: {
+          account_type: string
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+        }
+        Update: {
+          account_type?: string
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_entries: {
+        Row: {
+          created_at: string
+          credit: number
+          debit: number
+          description: string
+          id: string
+          journal_entry_id: string
+          ledger_account_id: string
+        }
+        Insert: {
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string
+          id?: string
+          journal_entry_id: string
+          ledger_account_id: string
+        }
+        Update: {
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string
+          id?: string
+          journal_entry_id?: string
+          ledger_account_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_ledger_account_id_fkey"
+            columns: ["ledger_account_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pix_keys: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          key_type: string
+          key_value: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_type: string
+          key_value: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_type?: string
+          key_value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pix_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pix_qr_codes: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          description: string
+          expires_at: string
+          id: string
+          is_used: boolean
+          pix_transaction_id: string | null
+          qr_code_data: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          created_at?: string
+          description?: string
+          expires_at: string
+          id?: string
+          is_used?: boolean
+          pix_transaction_id?: string | null
+          qr_code_data: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          description?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          pix_transaction_id?: string | null
+          qr_code_data?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pix_qr_codes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pix_qr_codes_pix_transaction_id_fkey"
+            columns: ["pix_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "pix_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pix_transactions: {
+        Row: {
+          amount: number
+          company_id: string
+          completed_at: string | null
+          counterpart_document: string | null
+          counterpart_name: string | null
+          created_at: string
+          description: string
+          direction: string
+          end_to_end_id: string | null
+          id: string
+          journal_entry_id: string | null
+          pix_key_id: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          company_id: string
+          completed_at?: string | null
+          counterpart_document?: string | null
+          counterpart_name?: string | null
+          created_at?: string
+          description?: string
+          direction: string
+          end_to_end_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          pix_key_id?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          completed_at?: string | null
+          counterpart_document?: string | null
+          counterpart_name?: string | null
+          created_at?: string
+          description?: string
+          direction?: string
+          end_to_end_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          pix_key_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pix_transactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pix_transactions_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pix_transactions_pix_key_id_fkey"
+            columns: ["pix_key_id"]
+            isOneToOne: false
+            referencedRelation: "pix_keys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -170,12 +559,56 @@ export type Database = {
           },
         ]
       }
+      wallets: {
+        Row: {
+          balance: number
+          company_id: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          wallet_type: string
+        }
+        Insert: {
+          balance?: number
+          company_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          wallet_type: string
+        }
+        Update: {
+          balance?: number
+          company_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          wallet_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      owns_company: { Args: { _company_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

@@ -20,6 +20,7 @@ import RevenueAnalysis from "./pages/RevenueAnalysis";
 import Automation from "./pages/Automation";
 import Team from "./pages/Team";
 import SettingsPage from "./pages/Settings";
+import Ledger from "./pages/Ledger";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ function AppRoutes() {
       <Route path="/financial-score" element={<ProtectedRoute><FinancialScore /></ProtectedRoute>} />
       <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
       <Route path="/automation" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
+      <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
