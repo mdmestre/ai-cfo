@@ -143,7 +143,7 @@ const Team = () => {
                               {profileName}
                               {isSelf && <span className="ml-1 text-[10px] text-muted-foreground">(you)</span>}
                             </p>
-                            {isOwnerRow && <Star className="h-3 w-3 fill-yellow-400 text-yellow-500" />}
+                            {isOwnerRow && <Star className="h-3 w-3 fill-primary text-primary" />}
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             <Mail className="h-3 w-3 text-muted-foreground/40" />
