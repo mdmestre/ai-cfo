@@ -23,6 +23,7 @@ import SettingsPage from "./pages/Settings";
 import Ledger from "./pages/Ledger";
 import Expenses from "./pages/Expenses";
 import CardsPage from "./pages/Cards";
+import Invoices from "./pages/Invoices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ function AppRoutes() {
       <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
       <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
       <Route path="/cards" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
+      <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

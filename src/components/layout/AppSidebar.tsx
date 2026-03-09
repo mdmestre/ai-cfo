@@ -15,6 +15,7 @@ import {
   Users,
   Receipt,
   Wallet,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -29,6 +30,7 @@ const navItems = [
   { title: "Payments Hub", url: "/payments", icon: Wallet },
   { title: "Expenses", url: "/expenses", icon: Receipt },
   { title: "Cards", url: "/cards", icon: CreditCard },
+  { title: "Invoices", url: "/invoices", icon: FileText },
   { title: "Insights", url: "/insights", icon: Lightbulb },
   { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
   { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
