@@ -1431,6 +1431,65 @@ export type Database = {
           },
         ]
       }
+      treasury_positions: {
+        Row: {
+          allocated_amount: number
+          annual_yield_rate: number
+          balance: number
+          company_id: string
+          created_at: string
+          currency: string
+          id: string
+          institution: string
+          is_active: boolean
+          maturity_date: string | null
+          name: string
+          notes: string | null
+          position_type: string
+          updated_at: string
+        }
+        Insert: {
+          allocated_amount?: number
+          annual_yield_rate?: number
+          balance?: number
+          company_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          institution?: string
+          is_active?: boolean
+          maturity_date?: string | null
+          name: string
+          notes?: string | null
+          position_type?: string
+          updated_at?: string
+        }
+        Update: {
+          allocated_amount?: number
+          annual_yield_rate?: number
+          balance?: number
+          company_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          institution?: string
+          is_active?: boolean
+          maturity_date?: string | null
+          name?: string
+          notes?: string | null
+          position_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treasury_positions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
           address: Json | null
@@ -1518,6 +1577,126 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "wallets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yield_events: {
+        Row: {
+          amount: number
+          company_id: string
+          created_at: string
+          description: string
+          event_date: string
+          event_type: string
+          id: string
+          position_id: string
+          product_id: string | null
+          yield_amount: number
+        }
+        Insert: {
+          amount?: number
+          company_id: string
+          created_at?: string
+          description?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          position_id: string
+          product_id?: string | null
+          yield_amount?: number
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          created_at?: string
+          description?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          position_id?: string
+          product_id?: string | null
+          yield_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_events_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "treasury_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "yield_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yield_products: {
+        Row: {
+          annual_rate: number
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          institution: string
+          is_available: boolean
+          liquidity_days: number
+          maturity_date: string | null
+          max_investment: number | null
+          min_investment: number
+          name: string
+          product_type: string
+          risk_level: string
+        }
+        Insert: {
+          annual_rate?: number
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          institution?: string
+          is_available?: boolean
+          liquidity_days?: number
+          maturity_date?: string | null
+          max_investment?: number | null
+          min_investment?: number
+          name: string
+          product_type?: string
+          risk_level?: string
+        }
+        Update: {
+          annual_rate?: number
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          institution?: string
+          is_available?: boolean
+          liquidity_days?: number
+          maturity_date?: string | null
+          max_investment?: number | null
+          min_investment?: number
+          name?: string
+          product_type?: string
+          risk_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yield_products_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"

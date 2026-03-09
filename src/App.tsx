@@ -27,6 +27,7 @@ import CardsPage from "./pages/Cards";
 import Invoices from "./pages/Invoices";
 import SavingsIntelligence from "./pages/SavingsIntelligence";
 import RiskDashboard from "./pages/RiskDashboard";
+import Treasury from "./pages/Treasury";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ function AppRoutes() {
       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
       <Route path="/savings" element={<ProtectedRoute><SavingsIntelligence /></ProtectedRoute>} />
       <Route path="/risk" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
+      <Route path="/treasury" element={<ProtectedRoute><Treasury /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />

@@ -18,6 +18,7 @@ import {
   FileText,
   Sparkles,
   Shield,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -37,6 +38,7 @@ const navSections = [
       { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
       { title: "Payments", url: "/payments", icon: Wallet },
       { title: "Cards", url: "/cards", icon: CreditCard },
+      { title: "Treasury", url: "/treasury", icon: Landmark },
     ],
   },
   {
