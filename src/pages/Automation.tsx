@@ -121,28 +121,28 @@ const Automation = () => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subscriptions</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Assinaturas</p>
             <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{subscriptions.filter(s => s.status === "active").length}</p>
             <div className="mt-2 flex items-center gap-1">
-              <span className="text-[12px] font-bold text-success">Healthy Sync</span>
+              <span className="text-[12px] font-bold text-success">Sincronizado</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Total Liquid</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">${totalBalance.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Liquidez Total</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{formatCurrency(totalBalance)}</p>
             <div className="mt-2 flex items-center gap-1">
-              <span className="text-[12px] text-muted-foreground">Across all banks</span>
+              <span className="text-[12px] text-muted-foreground">Todos os bancos</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Float Yield</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-accent">${totalOptimizedSavings}/mo</p>
-            <p className="mt-2 text-[12px] text-muted-foreground">Optimization gain</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Rendimento Float</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-accent">R$ {totalOptimizedSavings}/mês</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Ganho de otimização</p>
           </div>
-          <div className="metric-card bg-primary text-white border-0">
-            <p className="text-[13px] font-bold text-white/60 uppercase tracking-widest text-[10px]">Active Sentinels</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-white">{activeAlerts}</p>
-            <p className="mt-2 text-[12px] text-white/70">Guardians active</p>
+          <div className="metric-card bg-primary text-primary-foreground border-0">
+            <p className="text-[10px] font-bold text-primary-foreground/60 uppercase tracking-widest">Sentinelas Ativos</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-primary-foreground">{activeAlerts}</p>
+            <p className="mt-2 text-[12px] text-primary-foreground/70">Guardas ativos</p>
           </div>
         </div>
 
