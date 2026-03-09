@@ -7,6 +7,9 @@ import { AccountCard } from "@/components/accounts/AccountCard";
 import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -160,38 +163,39 @@ const Accounts = () => {
             <p className="text-[13px] font-bold text-foreground">Nova Conta Manual</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground">Banco</label>
-                <input
-                  type="text"
+                <Label className="text-[11px] font-bold uppercase text-muted-foreground">Banco</Label>
+                <Input
                   placeholder="Ex: Nubank, Itaú..."
                   value={formData.bank_name}
                   onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
                   required
-                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+                  className="h-9 text-[13px]"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground">Tipo</label>
-                <select
-                  value={formData.account_type}
-                  onChange={(e) => setFormData({ ...formData, account_type: e.target.value })}
-                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="checking">Conta Corrente</option>
-                  <option value="savings">Poupança</option>
-                  <option value="credit">Crédito Corporativo</option>
-                  <option value="investment">Investimento</option>
-                </select>
+                <Label className="text-[11px] font-bold uppercase text-muted-foreground">Tipo</Label>
+                <Select value={formData.account_type} onValueChange={(v) => setFormData({ ...formData, account_type: v })}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="checking">Conta Corrente</SelectItem>
+                    <SelectItem value="savings">Poupança</SelectItem>
+                    <SelectItem value="credit">Crédito Corporativo</SelectItem>
+                    <SelectItem value="investment">Investimento</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground">Saldo Atual</label>
-                <input
-                  type="number"
-                  step="0.01"
+                <Label className="text-[11px] font-bold uppercase text-muted-foreground">Saldo Atual (R$)</Label>
+                <Input
                   placeholder="0,00"
                   value={formData.balance}
-                  onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
-                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    setFormData({ ...formData, balance: val });
+                  }}
+                  className="h-9 text-[13px]"
                 />
               </div>
               <div className="flex items-end">

@@ -79,7 +79,7 @@ const defaultAlertRules: AlertRule[] = [
 
 type Tab = "subscriptions" | "payments" | "alerts";
 
-const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
+const formatCurrency = (value: number) => `R$ ${value.toLocaleString("pt-BR")}`;
 
 const Automation = () => {
   const [activeTab, setActiveTab] = useState<Tab>("subscriptions");
@@ -94,9 +94,9 @@ const Automation = () => {
   const activeAlerts = automations.filter(r => r.is_active).length;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "subscriptions", label: "Subscriptions", icon: <CreditCard className="h-3.5 w-3.5" /> },
-    { key: "payments", label: "Payment Scheduler", icon: <Calendar className="h-3.5 w-3.5" /> },
-    { key: "alerts", label: "Financial Rules", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
+    { key: "subscriptions", label: "Assinaturas", icon: <CreditCard className="h-3.5 w-3.5" /> },
+    { key: "payments", label: "Agendamento", icon: <Calendar className="h-3.5 w-3.5" /> },
+    { key: "alerts", label: "Regras Financeiras", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
   ];
 
   if (isLoading) {
@@ -108,41 +108,41 @@ const Automation = () => {
       <div className="max-w-[1200px] space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Automation OS</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">Financial guardrails and automated cash flow management</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Automação Financeira</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Regras financeiras e gestão automatizada de fluxo de caixa</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-white px-3 py-2 text-[13px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm">
+            <button className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-card px-3 py-2 text-[13px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm">
               <Settings className="h-3.5 w-3.5" />
-              Settings
+              Configurações
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subscriptions</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Assinaturas</p>
             <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{subscriptions.filter(s => s.status === "active").length}</p>
             <div className="mt-2 flex items-center gap-1">
-              <span className="text-[12px] font-bold text-success">Healthy Sync</span>
+              <span className="text-[12px] font-bold text-success">Sincronizado</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Total Liquid</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">${totalBalance.toLocaleString()}</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Liquidez Total</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{formatCurrency(totalBalance)}</p>
             <div className="mt-2 flex items-center gap-1">
-              <span className="text-[12px] text-muted-foreground">Across all banks</span>
+              <span className="text-[12px] text-muted-foreground">Todos os bancos</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Float Yield</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-accent">${totalOptimizedSavings}/mo</p>
-            <p className="mt-2 text-[12px] text-muted-foreground">Optimization gain</p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Rendimento Float</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-accent">R$ {totalOptimizedSavings}/mês</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Ganho de otimização</p>
           </div>
-          <div className="metric-card bg-primary text-white border-0">
-            <p className="text-[13px] font-bold text-white/60 uppercase tracking-widest text-[10px]">Active Sentinels</p>
-            <p className="mt-2 text-2xl font-bold tracking-tight text-white">{activeAlerts}</p>
-            <p className="mt-2 text-[12px] text-white/70">Guardians active</p>
+          <div className="metric-card bg-primary text-primary-foreground border-0">
+            <p className="text-[10px] font-bold text-primary-foreground/60 uppercase tracking-widest">Sentinelas Ativos</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-primary-foreground">{activeAlerts}</p>
+            <p className="mt-2 text-[12px] text-primary-foreground/70">Guardas ativos</p>
           </div>
         </div>
 
@@ -193,10 +193,10 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
 
   return (
     <div className="space-y-6">
-      {/* Charts Row */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground mb-4">Recurring Spend by Category</p>
+          <p className="text-[13px] font-medium text-muted-foreground mb-4">Gasto Recorrente por Categoria</p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -219,14 +219,14 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
           </div>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground mb-4">Monthly Recurring Trend</p>
+          <p className="text-[13px] font-medium text-muted-foreground mb-4">Tendência Mensal Recorrente</p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 94%)" vertical={false} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-                <Tooltip formatter={(value: number) => [formatCurrency(value), "Recurring"]} contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`} />
+                <Tooltip formatter={(value: number) => [formatCurrency(value), "Recorrente"]} contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }} />
                 <Bar dataKey="amount" fill="hsl(0 0% 9%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -234,13 +234,13 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
         </div>
       </div>
 
-      {/* Subscription List */}
+      {/* Lista de Assinaturas */}
       <div className="flex items-center gap-2">
         <div className="flex flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 max-w-sm">
           <Search className="h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search subscriptions..."
+            placeholder="Buscar assinaturas..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
@@ -264,12 +264,12 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Service</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Category</th>
-              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Amount</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Frequency</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Next Payment</th>
-              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Trend</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Serviço</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Categoria</th>
+              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Valor</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Frequência</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Próximo Pag.</th>
+              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Tendência</th>
               <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
               <th className="px-4 py-2.5 w-10"></th>
             </tr>
@@ -305,7 +305,7 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xxs font-medium ${s.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                     }`}>
                     {s.status === "active" ? <CheckCircle2 className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
-                    {s.status === "active" ? "Active" : "Paused"}
+                    {s.status === "active" ? "Ativo" : "Pausado"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -326,37 +326,37 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
 function PaymentsTab() {
   return (
     <div className="space-y-6">
-      {/* Optimization Banner */}
+      {/* Banner de Otimização */}
       <div className="flex items-start gap-3 rounded-lg border border-accent/20 bg-accent/5 p-4">
         <Zap className="h-4 w-4 text-accent mt-0.5 shrink-0" />
         <div>
-          <p className="text-[13px] font-medium text-foreground">Smart Payment Optimization Active</p>
+          <p className="text-[13px] font-medium text-foreground">Otimização Inteligente de Pagamentos Ativa</p>
           <p className="text-xxs text-muted-foreground mt-0.5">
-            AI has identified 4 payments that can be deferred to optimize cash position, saving an estimated <span className="font-semibold text-foreground">$225/month</span> in float costs.
+            A IA identificou 4 pagamentos que podem ser adiados para otimizar a posição de caixa, economizando aproximadamente <span className="font-semibold text-foreground">R$ 225/mês</span> em custos de float.
           </p>
         </div>
       </div>
 
-      {/* Payment Schedule */}
+      {/* Agenda de Pagamentos */}
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-          <p className="text-[13px] font-medium text-foreground">Upcoming Payment Schedule</p>
+          <p className="text-[13px] font-medium text-foreground">Agenda de Pagamentos</p>
           <div className="flex gap-2 text-xxs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" />Critical</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-accent" />Optimized</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground" />Fixed</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-destructive" />Crítico</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-accent" />Otimizado</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground" />Fixo</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground" />Normal</span>
           </div>
         </div>
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Vendor</th>
-              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Amount</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Due Date</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Suggested Date</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">AI Reasoning</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Priority</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Fornecedor</th>
+              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Valor</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Vencimento</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Data Sugerida</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Justificativa IA</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Prioridade</th>
             </tr>
           </thead>
           <tbody>
@@ -382,7 +382,7 @@ function PaymentsTab() {
                     <span className={`text-[13px] font-medium ${isDeferred ? "text-accent" : "text-foreground"}`}>
                       {p.suggestedDate}
                     </span>
-                    {isDeferred && <span className="ml-1.5 text-xxs text-accent">↗ deferred</span>}
+                    {isDeferred && <span className="ml-1.5 text-xxs text-accent">↗ adiado</span>}
                   </td>
                   <td className="px-4 py-3 text-xxs text-muted-foreground max-w-[240px]">{p.reason}</td>
                   <td className="px-4 py-3">
@@ -397,26 +397,26 @@ function PaymentsTab() {
         </table>
       </div>
 
-      {/* Cash Impact */}
+      {/* Impacto no Caixa */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Total Due (Next 30d)</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Total a Vencer (30d)</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {formatCurrency(upcomingPayments.reduce((s, p) => s + p.amount, 0))}
           </p>
-          <p className="mt-2 text-[13px] text-muted-foreground">{upcomingPayments.length} payments scheduled</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">{upcomingPayments.length} pagamentos agendados</p>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Deferrable Amount</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Valor Adiável</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-accent">
             {formatCurrency(upcomingPayments.filter(p => p.priority === "optimized").reduce((s, p) => s + p.amount, 0))}
           </p>
-          <p className="mt-2 text-[13px] text-muted-foreground">4 payments can be optimized</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">4 pagamentos otimizáveis</p>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Float Savings</p>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-success">$225/mo</p>
-          <p className="mt-2 text-[13px] text-muted-foreground">By optimizing payment timing</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Economia de Float</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-success">R$ 225/mês</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">Otimizando timing de pagamentos</p>
         </div>
       </div>
     </div>

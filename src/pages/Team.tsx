@@ -5,6 +5,9 @@ import {
   UserPlus, Shield, Mail, Loader2, Star, Crown, Eye, Users, Trash2, ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ROLE_CONFIG: Record<AppRole, { label: string; icon: any; color: string; desc: string }> = {
   owner: { label: "Proprietário", icon: Crown, color: "bg-primary text-primary-foreground", desc: "Controle total da empresa" },
@@ -73,27 +76,28 @@ const Team = () => {
                   Adicionar Membro
                 </h2>
                 <form onSubmit={handleInvite} className="space-y-3">
-                  <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
-                    <input
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">E-mail</Label>
+                    <Input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="colega@empresa.com"
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="h-9 text-[13px]"
                     />
                   </div>
-                  <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Função</label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as AppRole)}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                    >
-                      {ASSIGNABLE_ROLES.map((r) => (
-                        <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
-                      ))}
-                    </select>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Função</Label>
+                    <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
+                      <SelectTrigger className="h-9 text-[13px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ASSIGNABLE_ROLES.map((r) => (
+                          <SelectItem key={r} value={r}>{ROLE_CONFIG[r].label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <button
                     type="submit"
@@ -153,20 +157,22 @@ const Team = () => {
 
                         <div className="flex items-center gap-2">
                           {editingId === m.id && isAdmin && !isOwnerRow ? (
-                            <select
+                            <Select
                               value={m.role}
-                              onChange={(e) => {
-                                updateRole.mutate({ membershipId: m.id, newRole: e.target.value as AppRole });
+                              onValueChange={(v) => {
+                                updateRole.mutate({ membershipId: m.id, newRole: v as AppRole });
                                 setEditingId(null);
                               }}
-                              onBlur={() => setEditingId(null)}
-                              autoFocus
-                              className="rounded-lg border border-border bg-background px-2 py-1 text-[11px] text-foreground"
                             >
-                              {ASSIGNABLE_ROLES.map((r) => (
-                                <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
-                              ))}
-                            </select>
+                              <SelectTrigger className="h-7 text-[11px] w-28">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ASSIGNABLE_ROLES.map((r) => (
+                                  <SelectItem key={r} value={r}>{ROLE_CONFIG[r].label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           ) : (
                             <button
                               onClick={() => isAdmin && !isOwnerRow ? setEditingId(m.id) : null}

@@ -4,11 +4,30 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, BookOpen, Wallet, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const fmt = (v: number) => {
   if (Math.abs(v) >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(2)}M`;
   if (Math.abs(v) >= 1_000) return `R$ ${(v / 1_000).toFixed(1)}K`;
   return `R$ ${v.toFixed(2)}`;
+};
+
+const accountTypeLabels: Record<string, string> = {
+  asset: "Ativo",
+  liability: "Passivo",
+  equity: "Patrimônio",
+  revenue: "Receita",
+  expense: "Despesa",
+};
+
+const walletTypeLabels: Record<string, string> = {
+  operating: "Operacional",
+  reserve: "Reserva",
+  investment: "Investimento",
+  escrow: "Custódia",
 };
 
 const Ledger = () => {
@@ -36,26 +55,26 @@ const Ledger = () => {
     e.preventDefault();
     try {
       await createLedgerAccount.mutateAsync(acctForm);
-      toast.success("Ledger account created");
+      toast.success("Conta contábil criada");
       setAcctForm({ code: "", name: "", account_type: "asset" });
       setShowAccountForm(false);
-    } catch (err: any) { toast.error(err.message || "Failed"); }
+    } catch (err: any) { toast.error(err.message || "Falha ao criar"); }
   };
 
   const handleCreateWallet = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createWallet.mutateAsync(walletForm);
-      toast.success("Wallet created");
+      toast.success("Carteira criada");
       setWalletForm({ name: "", wallet_type: "operating" });
       setShowWalletForm(false);
-    } catch (err: any) { toast.error(err.message || "Failed"); }
+    } catch (err: any) { toast.error(err.message || "Falha ao criar"); }
   };
 
   const handleCreateJournalEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     const validLines = jeLines.filter((l) => l.ledger_account_id && (l.debit > 0 || l.credit > 0));
-    if (validLines.length < 2) return toast.error("At least 2 lines required");
+    if (validLines.length < 2) return toast.error("Mínimo de 2 linhas necessário");
     try {
       await createJournalEntry.mutateAsync({
         description: jeForm.description,
@@ -63,11 +82,11 @@ const Ledger = () => {
         entry_date: jeForm.entry_date || undefined,
         lines: validLines,
       });
-      toast.success("Journal entry posted");
+      toast.success("Lançamento registrado");
       setJeForm({ description: "", reference: "", entry_date: "" });
       setJeLines([{ ledger_account_id: "", debit: 0, credit: 0 }, { ledger_account_id: "", debit: 0, credit: 0 }]);
       setShowJournalForm(false);
-    } catch (err: any) { toast.error(err.message || "Failed"); }
+    } catch (err: any) { toast.error(err.message || "Falha ao registrar"); }
   };
 
   const addLine = () => setJeLines([...jeLines, { ledger_account_id: "", debit: 0, credit: 0 }]);
@@ -86,9 +105,9 @@ const Ledger = () => {
   }
 
   const tabs = [
-    { key: "journal", label: "Journal", icon: BookOpen },
-    { key: "accounts", label: "Chart of Accounts", icon: BarChart3 },
-    { key: "wallets", label: "Wallets", icon: Wallet },
+    { key: "journal", label: "Diário", icon: BookOpen },
+    { key: "accounts", label: "Plano de Contas", icon: BarChart3 },
+    { key: "wallets", label: "Carteiras", icon: Wallet },
   ] as const;
 
   return (
@@ -96,36 +115,36 @@ const Ledger = () => {
       <div className="max-w-[1200px] space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Financial Ledger</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">Double-entry accounting system</p>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Livro Contábil</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Sistema de partidas dobradas</p>
           </div>
           <div className="flex gap-2">
             {activeTab === "journal" && (
               <button onClick={() => setShowJournalForm(!showJournalForm)} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground hover:opacity-90">
-                <Plus className="h-3.5 w-3.5" /> New Entry
+                <Plus className="h-3.5 w-3.5" /> Novo Lançamento
               </button>
             )}
             {activeTab === "accounts" && (
               <button onClick={() => setShowAccountForm(!showAccountForm)} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground hover:opacity-90">
-                <Plus className="h-3.5 w-3.5" /> New Account
+                <Plus className="h-3.5 w-3.5" /> Nova Conta
               </button>
             )}
             {activeTab === "wallets" && (
               <button onClick={() => setShowWalletForm(!showWalletForm)} className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground hover:opacity-90">
-                <Plus className="h-3.5 w-3.5" /> New Wallet
+                <Plus className="h-3.5 w-3.5" /> Nova Carteira
               </button>
             )}
           </div>
         </div>
 
-        {/* Summary */}
+        {/* Resumo */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="metric-card"><div className="flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4 text-muted-foreground" /><p className="text-[13px] font-medium text-muted-foreground">Journal Entries</p></div><p className="text-2xl font-semibold text-foreground">{journalEntries.length}</p></div>
-          <div className="metric-card"><div className="flex items-center gap-2 mb-1"><BarChart3 className="h-4 w-4 text-muted-foreground" /><p className="text-[13px] font-medium text-muted-foreground">Ledger Accounts</p></div><p className="text-2xl font-semibold text-foreground">{ledgerAccounts.length}</p></div>
-          <div className="metric-card bg-primary text-primary-foreground border-0"><div className="flex items-center gap-2 mb-1"><Wallet className="h-4 w-4 text-primary-foreground/60" /><p className="text-[13px] font-medium text-primary-foreground/70">Wallet Balance</p></div><p className="text-2xl font-semibold">{fmt(totalWalletBalance)}</p></div>
+          <div className="metric-card"><div className="flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4 text-muted-foreground" /><p className="text-[13px] font-medium text-muted-foreground">Lançamentos</p></div><p className="text-2xl font-semibold text-foreground">{journalEntries.length}</p></div>
+          <div className="metric-card"><div className="flex items-center gap-2 mb-1"><BarChart3 className="h-4 w-4 text-muted-foreground" /><p className="text-[13px] font-medium text-muted-foreground">Contas Contábeis</p></div><p className="text-2xl font-semibold text-foreground">{ledgerAccounts.length}</p></div>
+          <div className="metric-card bg-primary text-primary-foreground border-0"><div className="flex items-center gap-2 mb-1"><Wallet className="h-4 w-4 text-primary-foreground/60" /><p className="text-[13px] font-medium text-primary-foreground/70">Saldo das Carteiras</p></div><p className="text-2xl font-semibold">{fmt(totalWalletBalance)}</p></div>
         </div>
 
-        {/* Tabs */}
+        {/* Abas */}
         <div className="flex gap-1 border-b border-border">
           {tabs.map((tab) => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium border-b-2 transition-colors ${activeTab === tab.key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
@@ -134,87 +153,129 @@ const Ledger = () => {
           ))}
         </div>
 
-        {/* Account Form */}
+        {/* Formulário de Conta */}
         {activeTab === "accounts" && showAccountForm && (
           <form onSubmit={handleCreateAccount} className="metric-card space-y-3 animate-slide-up">
-            <p className="text-[14px] font-bold text-foreground">New Ledger Account</p>
+            <p className="text-[14px] font-bold text-foreground">Nova Conta Contábil</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <input type="text" placeholder="Code (e.g. 1000)" value={acctForm.code} onChange={(e) => setAcctForm({ ...acctForm, code: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="text" placeholder="Account name" value={acctForm.name} onChange={(e) => setAcctForm({ ...acctForm, name: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <select value={acctForm.account_type} onChange={(e) => setAcctForm({ ...acctForm, account_type: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px]">
-                <option value="asset">Asset</option><option value="liability">Liability</option><option value="equity">Equity</option><option value="revenue">Revenue</option><option value="expense">Expense</option>
-              </select>
-              <button type="submit" disabled={createLedgerAccount.isPending} className="rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50">Create</button>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Código</Label>
+                <Input placeholder="Ex: 1000" value={acctForm.code} onChange={(e) => setAcctForm({ ...acctForm, code: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Nome</Label>
+                <Input placeholder="Nome da conta" value={acctForm.name} onChange={(e) => setAcctForm({ ...acctForm, name: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Tipo</Label>
+                <Select value={acctForm.account_type} onValueChange={(v) => setAcctForm({ ...acctForm, account_type: v })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(accountTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <button type="submit" disabled={createLedgerAccount.isPending} className="w-full rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50 h-9">Criar</button>
+              </div>
             </div>
           </form>
         )}
 
-        {/* Wallet Form */}
+        {/* Formulário de Carteira */}
         {activeTab === "wallets" && showWalletForm && (
           <form onSubmit={handleCreateWallet} className="metric-card space-y-3 animate-slide-up">
-            <p className="text-[14px] font-bold text-foreground">New Wallet</p>
+            <p className="text-[14px] font-bold text-foreground">Nova Carteira</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <input type="text" placeholder="Wallet name" value={walletForm.name} onChange={(e) => setWalletForm({ ...walletForm, name: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <select value={walletForm.wallet_type} onChange={(e) => setWalletForm({ ...walletForm, wallet_type: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px]">
-                <option value="operating">Operating</option><option value="reserve">Reserve</option><option value="investment">Investment</option><option value="escrow">Escrow</option>
-              </select>
-              <button type="submit" disabled={createWallet.isPending} className="rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50">Create</button>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Nome</Label>
+                <Input placeholder="Nome da carteira" value={walletForm.name} onChange={(e) => setWalletForm({ ...walletForm, name: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Tipo</Label>
+                <Select value={walletForm.wallet_type} onValueChange={(v) => setWalletForm({ ...walletForm, wallet_type: v })}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(walletTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <button type="submit" disabled={createWallet.isPending} className="w-full rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50 h-9">Criar</button>
+              </div>
             </div>
           </form>
         )}
 
-        {/* Journal Entry Form */}
+        {/* Formulário de Lançamento */}
         {activeTab === "journal" && showJournalForm && (
           <form onSubmit={handleCreateJournalEntry} className="metric-card space-y-4 animate-slide-up">
-            <p className="text-[14px] font-bold text-foreground">New Journal Entry</p>
+            <p className="text-[14px] font-bold text-foreground">Novo Lançamento</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <input type="text" placeholder="Description" value={jeForm.description} onChange={(e) => setJeForm({ ...jeForm, description: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="text" placeholder="Reference (optional)" value={jeForm.reference} onChange={(e) => setJeForm({ ...jeForm, reference: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="date" value={jeForm.entry_date} onChange={(e) => setJeForm({ ...jeForm, entry_date: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Descrição</Label>
+                <Input placeholder="Descrição" value={jeForm.description} onChange={(e) => setJeForm({ ...jeForm, description: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Referência (opcional)</Label>
+                <Input placeholder="Referência" value={jeForm.reference} onChange={(e) => setJeForm({ ...jeForm, reference: e.target.value })} className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Data</Label>
+                <Input type="date" value={jeForm.entry_date} onChange={(e) => setJeForm({ ...jeForm, entry_date: e.target.value })} className="h-9 text-[13px]" />
+              </div>
             </div>
             <div className="space-y-2">
-              <div className="grid grid-cols-4 gap-2 text-xxs font-bold uppercase text-muted-foreground px-1"><span>Account</span><span>Debit</span><span>Credit</span><span></span></div>
+              <div className="grid grid-cols-4 gap-2 text-xxs font-bold uppercase text-muted-foreground px-1"><span>Conta</span><span>Débito (R$)</span><span>Crédito (R$)</span><span></span></div>
               {jeLines.map((line, idx) => (
                 <div key={idx} className="grid grid-cols-4 gap-2">
-                  <select value={line.ledger_account_id} onChange={(e) => updateLine(idx, "ledger_account_id", e.target.value)} className="rounded-md border border-border bg-card px-2 py-1.5 text-[13px]">
-                    <option value="">Select account</option>
-                    {ledgerAccounts.map((a: any) => <option key={a.id} value={a.id}>{a.code} - {a.name}</option>)}
-                  </select>
-                  <input type="number" step="0.01" min="0" placeholder="0.00" value={line.debit || ""} onChange={(e) => updateLine(idx, "debit", e.target.value)} className="rounded-md border border-border bg-card px-2 py-1.5 text-[13px] outline-none" />
-                  <input type="number" step="0.01" min="0" placeholder="0.00" value={line.credit || ""} onChange={(e) => updateLine(idx, "credit", e.target.value)} className="rounded-md border border-border bg-card px-2 py-1.5 text-[13px] outline-none" />
+                  <Select value={line.ledger_account_id || "placeholder"} onValueChange={(v) => updateLine(idx, "ledger_account_id", v === "placeholder" ? "" : v)}>
+                    <SelectTrigger className="h-9 text-[13px]"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {ledgerAccounts.map((a: any) => <SelectItem key={a.id} value={a.id}>{a.code} - {a.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder="0,00" value={line.debit || ""} onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    updateLine(idx, "debit", val);
+                  }} className="h-9 text-[13px]" />
+                  <Input placeholder="0,00" value={line.credit || ""} onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    updateLine(idx, "credit", val);
+                  }} className="h-9 text-[13px]" />
                   <button type="button" onClick={() => setJeLines(jeLines.filter((_, i) => i !== idx))} className="text-muted-foreground hover:text-foreground text-[13px]">×</button>
                 </div>
               ))}
-              <button type="button" onClick={addLine} className="text-[13px] text-primary hover:underline">+ Add line</button>
+              <button type="button" onClick={addLine} className="text-[13px] text-primary hover:underline">+ Adicionar linha</button>
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <div className="flex gap-4 text-[13px]">
-                <span>Debit: <strong>{fmt(totalDebit)}</strong></span>
-                <span>Credit: <strong>{fmt(totalCredit)}</strong></span>
-                <span className={isBalanced ? "text-primary font-bold" : "text-destructive font-bold"}>{isBalanced ? "✓ Balanced" : "✗ Unbalanced"}</span>
+                <span>Débito: <strong>{fmt(totalDebit)}</strong></span>
+                <span>Crédito: <strong>{fmt(totalCredit)}</strong></span>
+                <span className={isBalanced ? "text-primary font-bold" : "text-destructive font-bold"}>{isBalanced ? "✓ Balanceado" : "✗ Desbalanceado"}</span>
               </div>
               <button type="submit" disabled={createJournalEntry.isPending || !isBalanced} className="rounded-md bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50">
-                {createJournalEntry.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Post Entry"}
+                {createJournalEntry.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Registrar"}
               </button>
             </div>
           </form>
         )}
 
-        {/* Content */}
+        {/* Conteúdo */}
         {activeTab === "journal" && (
           <div className="overflow-hidden rounded-lg border border-border bg-card">
             <table className="w-full">
-              <thead><tr className="border-b border-border">{["Date", "Description", "Reference", "Status", "Lines"].map((h) => <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-border">{["Data", "Descrição", "Referência", "Status", "Linhas"].map((h) => <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">{h}</th>)}</tr></thead>
               <tbody>
                 {journalEntries.length === 0 ? (
-                  <tr><td colSpan={5} className="px-4 py-12 text-center text-[13px] text-muted-foreground">No journal entries yet.</td></tr>
+                  <tr><td colSpan={5} className="px-4 py-12 text-center text-[13px] text-muted-foreground">Nenhum lançamento ainda.</td></tr>
                 ) : journalEntries.map((je: any) => (
                   <tr key={je.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{format(new Date(je.entry_date), "MMM d, yyyy")}</td>
+                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{format(new Date(je.entry_date), "dd/MM/yyyy", { locale: ptBR })}</td>
                     <td className="px-4 py-3 text-[13px] font-medium text-foreground">{je.description || "—"}</td>
                     <td className="px-4 py-3 text-[13px] text-muted-foreground">{je.reference || "—"}</td>
-                    <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xxs font-medium ${je.status === "posted" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>{je.status}</span></td>
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{je.ledger_entries?.length || 0} entries</td>
+                    <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xxs font-medium ${je.status === "posted" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>{je.status === "posted" ? "Lançado" : je.status}</span></td>
+                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{je.ledger_entries?.length || 0} linhas</td>
                   </tr>
                 ))}
               </tbody>
@@ -225,16 +286,16 @@ const Ledger = () => {
         {activeTab === "accounts" && (
           <div className="overflow-hidden rounded-lg border border-border bg-card">
             <table className="w-full">
-              <thead><tr className="border-b border-border">{["Code", "Name", "Type", "Status"].map((h) => <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-border">{["Código", "Nome", "Tipo", "Status"].map((h) => <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">{h}</th>)}</tr></thead>
               <tbody>
                 {ledgerAccounts.length === 0 ? (
-                  <tr><td colSpan={4} className="px-4 py-12 text-center text-[13px] text-muted-foreground">No accounts yet.</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-12 text-center text-[13px] text-muted-foreground">Nenhuma conta ainda.</td></tr>
                 ) : ledgerAccounts.map((a: any) => (
                   <tr key={a.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
                     <td className="px-4 py-3 text-[13px] font-mono font-bold text-foreground">{a.code}</td>
                     <td className="px-4 py-3 text-[13px] text-foreground">{a.name}</td>
-                    <td className="px-4 py-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium capitalize">{a.account_type}</span></td>
-                    <td className="px-4 py-3"><span className="text-xxs font-bold text-primary">Active</span></td>
+                    <td className="px-4 py-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium capitalize">{accountTypeLabels[a.account_type] || a.account_type}</span></td>
+                    <td className="px-4 py-3"><span className="text-xxs font-bold text-primary">Ativa</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -247,7 +308,7 @@ const Ledger = () => {
             {wallets.length === 0 ? (
               <div className="col-span-full py-12 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-secondary/10">
                 <Wallet className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                <p className="text-[13px] font-medium text-muted-foreground">No wallets yet.</p>
+                <p className="text-[13px] font-medium text-muted-foreground">Nenhuma carteira ainda.</p>
               </div>
             ) : wallets.map((w: any) => (
               <div key={w.id} className="metric-card group hover:border-primary/20 transition-all">
@@ -255,7 +316,7 @@ const Ledger = () => {
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary group-hover:bg-primary/5"><Wallet className="h-4 w-4 text-muted-foreground group-hover:text-primary" /></div>
                   <div>
                     <p className="text-[13px] font-bold text-foreground">{w.name}</p>
-                    <p className="text-xxs font-bold uppercase text-muted-foreground/60">{w.wallet_type} · {w.currency}</p>
+                    <p className="text-xxs font-bold uppercase text-muted-foreground/60">{walletTypeLabels[w.wallet_type] || w.wallet_type} · {w.currency}</p>
                   </div>
                 </div>
                 <p className="text-2xl font-bold tracking-tight text-foreground">{fmt(Number(w.balance))}</p>
