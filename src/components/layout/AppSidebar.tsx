@@ -58,9 +58,11 @@ const navSections = [
   {
     label: "Intelligence",
     items: [
+      { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
+      { title: "Savings", url: "/savings", icon: Sparkles },
+      { title: "Risk", url: "/risk", icon: Shield },
       { title: "Insights", url: "/insights", icon: Lightbulb },
       { title: "Score", url: "/financial-score", icon: ShieldCheck },
-      { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
       { title: "Automation", url: "/automation", icon: Zap },
     ],
   },
