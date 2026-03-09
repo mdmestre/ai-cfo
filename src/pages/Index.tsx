@@ -3,11 +3,12 @@ import { MetricCard } from "@/components/dashboard/MetricCard";
 import { HealthScoreCard } from "@/components/dashboard/HealthScoreCard";
 import { FinancialAlerts } from "@/components/dashboard/FinancialAlerts";
 import { SmartRecommendations } from "@/components/dashboard/SmartRecommendations";
-import { DollarSign, TrendingUp, CreditCard, PiggyBank, Loader2 } from "lucide-react";
+import { DollarSign, TrendingUp, CreditCard, PiggyBank, Loader2, FileDown } from "lucide-react";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useProfile } from "@/hooks/use-profile";
 import { useForecasts } from "@/hooks/use-forecasts";
+import { useReports } from "@/hooks/use-reports";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subMonths } from "date-fns";
 
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const { totalBalance, isLoading: accountsLoading } = useAccounts();
   const { transactions, monthlyRevenue, monthlyExpenses, isLoading: txLoading } = useTransactions();
   const { forecasts } = useForecasts();
+  const { exportCSV } = useReports();
 
   const netCashFlow = monthlyRevenue - monthlyExpenses;
   const firstName = profile?.name?.split(" ")[0] || "there";
@@ -64,11 +66,20 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="max-w-[1200px] space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Good morning, {firstName}</h1>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Here's your financial overview for {format(new Date(), "MMMM yyyy")}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Good morning, {firstName}</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              Here's your financial overview for {format(new Date(), "MMMM yyyy")}
+            </p>
+          </div>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-1.5 text-[12px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm"
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            Export Audit Log
+          </button>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import atlasLogo from "@/assets/atlas-logo.png";
+import api from "@/lib/api";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,28 +20,26 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { data } = await api.post("/auth/login", { email, password });
+        localStorage.setItem("atlas_token", data.token);
+        localStorage.setItem("atlas_user", JSON.stringify(data.user));
         navigate("/");
+        window.location.reload(); // Force reload to refresh context
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
+        const { data } = await api.post("/auth/register", { email, password, name });
+        localStorage.setItem("atlas_token", data.token);
+        localStorage.setItem("atlas_user", JSON.stringify(data.user));
         toast({
           title: "Account created",
-          description: "Check your email to confirm your account, or sign in if auto-confirm is enabled.",
+          description: "Welcome to Atlas!",
         });
+        navigate("/");
+        window.location.reload();
       }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.response?.data?.error || "Authentication failed",
         variant: "destructive",
       });
     } finally {

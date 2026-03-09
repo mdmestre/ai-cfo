@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { TopNavbar } from "./TopNavbar";
+import { AICopilot } from "../ai/AICopilot";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="flex-1 p-8">
           {children}
         </main>
+        <AICopilot />
       </div>
     </div>
   );

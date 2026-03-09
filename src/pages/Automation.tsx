@@ -4,9 +4,12 @@ import {
   CreditCard, RotateCcw, Bell, Calendar, ArrowUpRight, ArrowDownRight,
   CheckCircle2, AlertTriangle, Clock, Zap, ChevronRight, Pause, Play,
   TrendingDown, DollarSign, Filter, Search, MoreHorizontal, Settings,
-  RefreshCw, Tag, Eye, EyeOff,
+  RefreshCw, Tag, Eye, EyeOff, Loader2
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import { AutomationBuilder } from "@/components/automation/AutomationBuilder";
+import { useAutomations } from "@/hooks/use-automations";
+import { useAccounts } from "@/hooks/use-accounts";
 
 // ─── Subscriptions Data ───
 const subscriptions = [
@@ -80,73 +83,66 @@ const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
 
 const Automation = () => {
   const [activeTab, setActiveTab] = useState<Tab>("subscriptions");
-  const [alertRules, setAlertRules] = useState<AlertRule[]>(defaultAlertRules);
+  const { automations, isLoading: automationsLoading } = useAutomations();
+  const { accounts, totalBalance, isLoading: accountsLoading } = useAccounts();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const isLoading = automationsLoading || accountsLoading;
 
   const totalMonthly = subscriptions.filter(s => s.status === "active").reduce((sum, s) => sum + s.amount, 0);
   const totalOptimizedSavings = 225;
-  const activeAlerts = alertRules.filter(r => r.enabled && r.triggered).length;
-
-  const toggleAlert = (id: number) => {
-    setAlertRules(prev => prev.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
-  };
+  const activeAlerts = automations.filter(r => r.is_active).length;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: "subscriptions", label: "Subscriptions", icon: <CreditCard className="h-3.5 w-3.5" /> },
     { key: "payments", label: "Payment Scheduler", icon: <Calendar className="h-3.5 w-3.5" /> },
-    { key: "alerts", label: "Alert Rules", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
+    { key: "alerts", label: "Financial Rules", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
   ];
+
+  if (isLoading) {
+    return <AppLayout><div className="flex items-center justify-center h-64"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div></AppLayout>;
+  }
 
   return (
     <AppLayout>
-      <div className="max-w-[1200px] space-y-6">
-        {/* Header */}
+      <div className="max-w-[1200px] space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Automation</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">Automated expense tracking, payment scheduling, and financial alerts</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Automation OS</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Financial guardrails and automated cash flow management</p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors">
+            <button className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-white px-3 py-2 text-[13px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm">
               <Settings className="h-3.5 w-3.5" />
-              Configure
-            </button>
-            <button className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90 transition-opacity">
-              <RefreshCw className="h-3.5 w-3.5" />
-              Sync Now
+              Settings
             </button>
           </div>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Active Subscriptions</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{subscriptions.filter(s => s.status === "active").length}</p>
+            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subscriptions</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{subscriptions.filter(s => s.status === "active").length}</p>
             <div className="mt-2 flex items-center gap-1">
-              <ArrowUpRight className="h-3.5 w-3.5 text-destructive" />
-              <span className="text-[13px] font-medium text-destructive">+2</span>
-              <span className="text-[13px] text-muted-foreground">this quarter</span>
+              <span className="text-[12px] font-bold text-success">Healthy Sync</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Monthly Recurring</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{formatCurrency(totalMonthly)}</p>
+            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Total Liquid</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">${totalBalance.toLocaleString()}</p>
             <div className="mt-2 flex items-center gap-1">
-              <ArrowUpRight className="h-3.5 w-3.5 text-destructive" />
-              <span className="text-[13px] font-medium text-destructive">+4.8%</span>
-              <span className="text-[13px] text-muted-foreground">vs last month</span>
+              <span className="text-[12px] text-muted-foreground">Across all banks</span>
             </div>
           </div>
           <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Optimized Savings</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">${totalOptimizedSavings}/mo</p>
-            <p className="mt-2 text-[13px] text-muted-foreground">From payment timing</p>
+            <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Float Yield</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-accent">${totalOptimizedSavings}/mo</p>
+            <p className="mt-2 text-[12px] text-muted-foreground">Optimization gain</p>
           </div>
-          <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Active Alerts</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{activeAlerts}</p>
-            <p className="mt-2 text-[13px] text-muted-foreground">{alertRules.filter(r => r.enabled).length} rules enabled</p>
+          <div className="metric-card bg-primary text-white border-0">
+            <p className="text-[13px] font-bold text-white/60 uppercase tracking-widest text-[10px]">Active Sentinels</p>
+            <p className="mt-2 text-2xl font-bold tracking-tight text-white">{activeAlerts}</p>
+            <p className="mt-2 text-[12px] text-white/70">Guardians active</p>
           </div>
         </div>
 
@@ -156,11 +152,10 @@ const Automation = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors ${activeTab === tab.key
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
             >
               {tab.icon}
               {tab.label}
@@ -176,7 +171,11 @@ const Automation = () => {
         {/* Tab Content */}
         {activeTab === "subscriptions" && <SubscriptionsTab searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
         {activeTab === "payments" && <PaymentsTab />}
-        {activeTab === "alerts" && <AlertsTab alertRules={alertRules} toggleAlert={toggleAlert} />}
+        {activeTab === "alerts" && (
+          <div className="space-y-8">
+            <AutomationBuilder />
+          </div>
+        )}
       </div>
     </AppLayout>
   );
@@ -226,7 +225,7 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
               <BarChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 94%)" vertical={false} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `$${(v/1000).toFixed(0)}K`} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
                 <Tooltip formatter={(value: number) => [formatCurrency(value), "Recurring"]} contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }} />
                 <Bar dataKey="amount" fill="hsl(0 0% 9%)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -251,11 +250,10 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
           <button
             key={cat}
             onClick={() => setCategoryFilter(cat)}
-            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${
-              cat === categoryFilter
-                ? "bg-foreground text-background"
-                : "border border-border bg-card text-foreground hover:bg-secondary"
-            }`}
+            className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors ${cat === categoryFilter
+              ? "bg-foreground text-background"
+              : "border border-border bg-card text-foreground hover:bg-secondary"
+              }`}
           >
             {cat}
           </button>
@@ -304,9 +302,8 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xxs font-medium ${
-                    s.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                  }`}>
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xxs font-medium ${s.status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                    }`}>
                     {s.status === "active" ? <CheckCircle2 className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
                     {s.status === "active" ? "Active" : "Paused"}
                   </span>
@@ -451,10 +448,9 @@ function AlertsTab({ alertRules, toggleAlert }: { alertRules: AlertRule[]; toggl
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-[13px] font-medium text-foreground">{rule.name}</p>
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase ${
-                      rule.severity === "critical" ? "bg-destructive/10 text-destructive" :
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase ${rule.severity === "critical" ? "bg-destructive/10 text-destructive" :
                       rule.severity === "warning" ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"
-                    }`}>{rule.severity}</span>
+                      }`}>{rule.severity}</span>
                   </div>
                   <p className="text-xxs text-muted-foreground mt-0.5">{rule.description}</p>
                   {rule.lastTriggered && <p className="text-xxs text-muted-foreground mt-1">Last triggered: {rule.lastTriggered}</p>}
@@ -489,10 +485,9 @@ function AlertsTab({ alertRules, toggleAlert }: { alertRules: AlertRule[]; toggl
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className={`text-[13px] font-medium ${rule.enabled ? "text-foreground" : "text-muted-foreground"}`}>{rule.name}</p>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase ${
-                    rule.severity === "critical" ? "bg-destructive/10 text-destructive" :
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium uppercase ${rule.severity === "critical" ? "bg-destructive/10 text-destructive" :
                     rule.severity === "warning" ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"
-                  }`}>{rule.severity}</span>
+                    }`}>{rule.severity}</span>
                   {rule.triggered && rule.enabled && (
                     <span className="h-1.5 w-1.5 rounded-full bg-destructive animate-pulse" />
                   )}

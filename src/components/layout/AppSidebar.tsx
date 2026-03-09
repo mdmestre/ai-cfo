@@ -12,6 +12,8 @@ import {
   PieChart,
   BarChart3,
   Zap,
+  CreditCard,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -22,12 +24,13 @@ const navItems = [
   { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
   { title: "Accounts", url: "/accounts", icon: Building2 },
   { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
-  { title: "Expense Analysis", url: "/expense-analysis", icon: PieChart },
-  { title: "Revenue Analysis", url: "/revenue-analysis", icon: BarChart3 },
-  { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
-  { title: "Automation", url: "/automation", icon: Zap },
   { title: "Insights", url: "/insights", icon: Lightbulb },
-  { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
+  { title: "Financial Score", url: "/financial-score", icon: ShieldCheck },
+  { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
+  { title: "Automation", url: "/automation", icon: Zap },
+  { title: "Payments Hub", url: "/payments", icon: CreditCard },
+  { title: "Team", url: "/team", icon: Users },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
 const bottomItems = [

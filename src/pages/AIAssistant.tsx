@@ -1,6 +1,8 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Bot, Send, User, Sparkles } from "lucide-react";
+import { Bot, Send, User, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useInsights } from "@/hooks/use-insights";
+import { useCompany } from "@/hooks/use-company";
 
 interface Message {
   role: "user" | "assistant";
@@ -10,11 +12,13 @@ interface Message {
 const suggestedQuestions = [
   "How much can I spend next month?",
   "Why did expenses increase?",
-  "Will my company run out of cash?",
-  "What's my revenue forecast for Q2?",
+  "Tell me about my cash position",
+  "How is my burn rate currently?",
 ];
 
 const AIAssistant = () => {
+  const { company } = useCompany();
+  const { chat } = useInsights(company?.id);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -24,63 +28,64 @@ const AIAssistant = () => {
   ]);
   const [input, setInput] = useState("");
 
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const message = text || input;
-    if (!message.trim()) return;
+    if (!message.trim() || !company) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: message }]);
+    const userMessage: Message = { role: "user", content: message };
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    setTimeout(() => {
-      let response = "";
-      if (message.toLowerCase().includes("spend")) {
-        response =
-          "Based on your current cash position of $1.24M and projected expenses of ~$310K/month, you have approximately **$170K in discretionary spending** available next month while maintaining a healthy 3-month cash runway.\n\nHowever, I'd recommend keeping at least $50K as a buffer given the upcoming payroll cycle on the 15th.";
-      } else if (message.toLowerCase().includes("expense")) {
-        response =
-          "Your expenses increased by **$18,200 (6.2%)** compared to last month. The main drivers are:\n\n1. **Software subscriptions** — up $4,800 (new Hubspot tier)\n2. **Travel** — up $6,400 (Q1 client meetings)\n3. **Infrastructure** — up $3,200 (AWS scaling)\n\nI recommend reviewing the 3 overlapping project management tools which could save ~$2,400/month.";
-      } else if (message.toLowerCase().includes("run out") || message.toLowerCase().includes("cash")) {
-        response =
-          "At your current burn rate of **$310K/month** with revenue of **$480K/month**, you have a healthy positive cash flow of $170K/month.\n\nYour cash runway is approximately **7.3 months** even with zero revenue. However, if the top client (38% of revenue) were to churn, runway would drop to **2.8 months**. I strongly recommend diversifying your client base.";
-      } else {
-        response =
-          "Based on your financial data, here's what I can tell you:\n\n- **Cash Position**: $1.24M (healthy)\n- **Monthly Net**: +$170K\n- **Health Score**: 78/100\n\nWould you like me to dive deeper into any specific area?";
-      }
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-    }, 800);
+    try {
+      const response = await chat.mutateAsync({
+        message,
+        companyId: company.id
+      });
+
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: response.content || "I'm processing your financial data. Could you rephrase that?"
+      }]);
+    } catch (error) {
+      setMessages((prev) => [...prev, {
+        role: "assistant",
+        content: "I'm having trouble accessing the financial engine right now. Please try again in a moment."
+      }]);
+    }
   };
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-7rem)] flex-col max-w-[800px]">
-        <div className="mb-4">
+      <div className="flex h-[calc(100vh-7rem)] flex-col max-w-[800px] animate-fade-in">
+        <div className="mb-6">
           <div className="flex items-center gap-1.5">
-            <Sparkles className="h-4 w-4 text-accent" />
-            <h1 className="text-xl font-semibold text-foreground">AI Assistant</h1>
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/10">
+              <Sparkles className="h-4 w-4 text-accent" />
+            </div>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">AI Copilot</h1>
           </div>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">Ask anything about your company's finances</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">Digital CFO with real-time access to your company infrastructure</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+        <div className="flex-1 overflow-y-auto space-y-4 pb-6 px-1">
           {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : ""}`}>
+            <div key={i} className={`flex gap-3.5 ${msg.role === "user" ? "justify-end" : ""}`}>
               {msg.role === "assistant" && (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent">
-                  <Bot className="h-3.5 w-3.5 text-accent-foreground" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 border border-accent/20">
+                  <Bot className="h-4 w-4 text-accent" />
                 </div>
               )}
               <div
-                className={`max-w-xl rounded-lg px-3.5 py-2.5 text-[13px] leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-foreground text-background"
-                    : "bg-card border border-border text-foreground"
-                }`}
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed shadow-sm ${msg.role === "user"
+                    ? "bg-primary text-white font-medium rounded-tr-none"
+                    : "bg-white border border-border/60 text-foreground rounded-tl-none"
+                  }`}
               >
                 {msg.content.split("\n").map((line, j) => (
-                  <p key={j} className={j > 0 ? "mt-1.5" : ""}>
+                  <p key={j} className={j > 0 ? "mt-2" : ""}>
                     {line.split("**").map((part, k) =>
                       k % 2 === 1 ? (
-                        <strong key={k} className="font-semibold">{part}</strong>
+                        <strong key={k} className="font-bold">{part}</strong>
                       ) : (
                         <span key={k}>{part}</span>
                       )
@@ -89,43 +94,62 @@ const AIAssistant = () => {
                 ))}
               </div>
               {msg.role === "user" && (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground">
-                  <User className="h-3.5 w-3.5 text-background" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
+                  <User className="h-4 w-4 text-primary" />
                 </div>
               )}
             </div>
           ))}
+          {chat.isPending && (
+            <div className="flex gap-3.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 animate-pulse">
+                <Bot className="h-4 w-4 text-accent/40" />
+              </div>
+              <div className="bg-white border border-border/40 rounded-2xl px-6 py-4 rounded-tl-none shadow-sm flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-accent/50" />
+                <span className="text-xxs font-bold uppercase tracking-widest text-muted-foreground/40">Analyzing Atlas Intelligence...</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {messages.length === 1 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {suggestedQuestions.map((q) => (
-              <button
-                key={q}
-                onClick={() => handleSend(q)}
-                className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground hover:bg-secondary transition-colors"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="mt-auto space-y-4">
+          {messages.length === 1 && (
+            <div className="flex flex-wrap gap-2">
+              {suggestedQuestions.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  disabled={chat.isPending}
+                  className="rounded-full border border-border/60 bg-white px-4 py-1.5 text-[12px] font-medium text-foreground hover:border-primary/40 hover:bg-primary/[0.02] transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
 
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-2.5">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask about your finances..."
-            className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none px-1"
-          />
-          <button
-            onClick={() => handleSend()}
-            className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-accent-foreground hover:opacity-90 transition-opacity"
-          >
-            <Send className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-white p-2.5 shadow-lg focus-within:border-primary/40 transition-all">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !chat.isPending && handleSend()}
+              disabled={chat.isPending}
+              placeholder="Message your financial operating system..."
+              className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none px-2"
+            />
+            <button
+              onClick={() => handleSend()}
+              disabled={chat.isPending || !input.trim()}
+              className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-md"
+            >
+              {chat.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </button>
+          </div>
+          <p className="text-center text-[10px] text-muted-foreground/40 font-medium uppercase tracking-widest">
+            AI can make financial mistakes. Always verify critical decisions.
+          </p>
         </div>
       </div>
     </AppLayout>

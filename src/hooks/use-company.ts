@@ -1,35 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import api from "@/lib/api";
 
 export function useCompany() {
-  const { user } = useAuth();
-
   const { data: company, isLoading } = useQuery({
-    queryKey: ["company", user?.id],
+    queryKey: ["company"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("owner_id", user!.id)
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
+      const { data } = await api.get("/company");
       return data;
     },
-    enabled: !!user,
   });
 
   const queryClient = useQueryClient();
 
   const createCompany = useMutation({
     mutationFn: async (name: string) => {
-      const { data, error } = await supabase
-        .from("companies")
-        .insert({ name, owner_id: user!.id })
-        .select()
-        .single();
-      if (error) throw error;
+      const { data } = await api.post("/company", { name });
       return data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company"] }),
