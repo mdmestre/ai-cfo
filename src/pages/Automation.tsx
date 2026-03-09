@@ -400,26 +400,26 @@ function PaymentsTab() {
         </table>
       </div>
 
-      {/* Cash Impact */}
+      {/* Impacto no Caixa */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Total Due (Next 30d)</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Total a Vencer (30d)</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {formatCurrency(upcomingPayments.reduce((s, p) => s + p.amount, 0))}
           </p>
-          <p className="mt-2 text-[13px] text-muted-foreground">{upcomingPayments.length} payments scheduled</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">{upcomingPayments.length} pagamentos agendados</p>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Deferrable Amount</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Valor Adiável</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-accent">
             {formatCurrency(upcomingPayments.filter(p => p.priority === "optimized").reduce((s, p) => s + p.amount, 0))}
           </p>
-          <p className="mt-2 text-[13px] text-muted-foreground">4 payments can be optimized</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">4 pagamentos otimizáveis</p>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground">Float Savings</p>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-success">$225/mo</p>
-          <p className="mt-2 text-[13px] text-muted-foreground">By optimizing payment timing</p>
+          <p className="text-[13px] font-medium text-muted-foreground">Economia de Float</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-success">R$ 225/mês</p>
+          <p className="mt-2 text-[13px] text-muted-foreground">Otimizando timing de pagamentos</p>
         </div>
       </div>
     </div>
