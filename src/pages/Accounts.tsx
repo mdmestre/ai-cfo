@@ -7,6 +7,9 @@ import { AccountCard } from "@/components/accounts/AccountCard";
 import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
