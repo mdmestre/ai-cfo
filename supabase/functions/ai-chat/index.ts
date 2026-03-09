@@ -17,17 +17,32 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Create supabase client to fetch financial context
+    // Validate the JWT using the anon key + forwarded auth header
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub;
 
     const { messages, companyId } = await req.json();
 
@@ -38,12 +53,28 @@ serve(async (req) => {
       );
     }
 
-    // Fetch financial context for RAG
+    // Verify user is a member of the requested company
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: membership, error: membershipError } = await adminClient
+      .from("memberships")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("company_id", companyId)
+      .maybeSingle();
+
+    if (membershipError || !membership) {
+      return new Response(JSON.stringify({ error: "Access denied to this company" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch financial context using service role (RLS bypass is now safe after membership check)
     const [accountsRes, walletsRes, expensesRes, journalRes] = await Promise.all([
-      supabase.from("accounts").select("bank_name, account_type, balance").eq("company_id", companyId),
-      supabase.from("wallets").select("name, wallet_type, balance, currency").eq("company_id", companyId),
-      supabase.from("expenses").select("amount, description, status, expense_date, merchant").eq("company_id", companyId).order("expense_date", { ascending: false }).limit(20),
-      supabase.from("journal_entries").select("description, entry_date, status").eq("company_id", companyId).order("created_at", { ascending: false }).limit(10),
+      adminClient.from("accounts").select("bank_name, account_type, balance").eq("company_id", companyId),
+      adminClient.from("wallets").select("name, wallet_type, balance, currency").eq("company_id", companyId),
+      adminClient.from("expenses").select("amount, description, status, expense_date, merchant").eq("company_id", companyId).order("expense_date", { ascending: false }).limit(20),
+      adminClient.from("journal_entries").select("description, entry_date, status").eq("company_id", companyId).order("created_at", { ascending: false }).limit(10),
     ]);
 
     const totalBalance = (accountsRes.data || []).reduce((s, a) => s + Number(a.balance || 0), 0);
@@ -127,7 +158,7 @@ ${financialContext}`;
   } catch (e) {
     console.error("ai-chat error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: "An unexpected error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
