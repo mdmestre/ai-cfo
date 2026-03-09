@@ -38,6 +38,7 @@ const navSections = [
       { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
       { title: "Payments", url: "/payments", icon: Wallet },
       { title: "Cards", url: "/cards", icon: CreditCard },
+      { title: "Treasury", url: "/treasury", icon: Landmark },
     ],
   },
   {
