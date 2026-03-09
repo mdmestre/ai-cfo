@@ -67,6 +67,7 @@ function AppRoutes() {
       <Route path="/financial-score" element={<ProtectedRoute><FinancialScore /></ProtectedRoute>} />
       <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
       <Route path="/automation" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
+      <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
