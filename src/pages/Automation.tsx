@@ -193,10 +193,10 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
 
   return (
     <div className="space-y-6">
-      {/* Charts Row */}
+      {/* Gráficos */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground mb-4">Recurring Spend by Category</p>
+          <p className="text-[13px] font-medium text-muted-foreground mb-4">Gasto Recorrente por Categoria</p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -219,14 +219,14 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
           </div>
         </div>
         <div className="metric-card">
-          <p className="text-[13px] font-medium text-muted-foreground mb-4">Monthly Recurring Trend</p>
+          <p className="text-[13px] font-medium text-muted-foreground mb-4">Tendência Mensal Recorrente</p>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 94%)" vertical={false} />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`} />
-                <Tooltip formatter={(value: number) => [formatCurrency(value), "Recurring"]} contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}K`} />
+                <Tooltip formatter={(value: number) => [formatCurrency(value), "Recorrente"]} contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }} />
                 <Bar dataKey="amount" fill="hsl(0 0% 9%)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
