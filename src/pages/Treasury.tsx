@@ -124,13 +124,49 @@ export default function Treasury() {
           <div className="metric-card animate-slide-up space-y-3">
             <h3 className="text-[14px] font-semibold text-foreground">Nova Posição</h3>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <select value={form.position_type} onChange={(e) => setForm({ ...form, position_type: e.target.value })} className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground">
-                {Object.entries(typeLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-              <input value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} placeholder="Instituição" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <input value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} placeholder="Saldo" type="number" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
-              <input value={form.annual_yield_rate} onChange={(e) => setForm({ ...form, annual_yield_rate: e.target.value })} placeholder="Rendimento % a.a." type="number" step="0.01" className="rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground" />
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Nome</Label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome da posição" className="h-9 text-[13px]" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Tipo</Label>
+                <Select value={form.position_type} onValueChange={(v) => setForm({ ...form, position_type: v })}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(typeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Instituição</Label>
+                <Input value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} placeholder="Nome do banco" className="h-9 text-[13px]" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Saldo (R$)</Label>
+                <Input 
+                  value={form.balance} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    setForm({ ...form, balance: val });
+                  }} 
+                  placeholder="0,00" 
+                  className="h-9 text-[13px]"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground mb-1">Rendimento % a.a.</Label>
+                <Input 
+                  value={form.annual_yield_rate} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                    setForm({ ...form, annual_yield_rate: val });
+                  }} 
+                  placeholder="0,00" 
+                  className="h-9 text-[13px]"
+                />
+              </div>
             </div>
             <button onClick={handleCreatePosition} disabled={createPosition.isPending} className="rounded-lg bg-foreground px-4 py-2 text-[13px] font-semibold text-background hover:bg-foreground/90">
               {createPosition.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar"}
