@@ -264,12 +264,12 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Service</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Category</th>
-              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Amount</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Frequency</th>
-              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Next Payment</th>
-              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Trend</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Serviço</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Categoria</th>
+              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Valor</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Frequência</th>
+              <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Próximo Pag.</th>
+              <th className="px-4 py-2.5 text-right text-xxs font-medium uppercase tracking-wider text-muted-foreground">Tendência</th>
               <th className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
               <th className="px-4 py-2.5 w-10"></th>
             </tr>
