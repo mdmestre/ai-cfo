@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, FileText, ArrowUpRight, ArrowDownLeft, Users, Building2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -19,6 +20,16 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-muted text-muted-foreground",
   open: "bg-info/10 text-info",
   partial: "bg-warning/10 text-warning",
+};
+
+const statusLabels: Record<string, string> = {
+  draft: "Rascunho",
+  sent: "Enviada",
+  paid: "Paga",
+  overdue: "Vencida",
+  cancelled: "Cancelada",
+  open: "Aberta",
+  partial: "Parcial",
 };
 
 function formatCurrency(val: number) {
@@ -36,7 +47,6 @@ const Invoices = () => {
   const [contactType, setContactType] = useState<"customer" | "vendor">("customer");
   const [newContact, setNewContact] = useState({ name: "", email: "", document: "" });
 
-  // Invoice form
   const [direction, setDirection] = useState<"receivable" | "payable">("receivable");
   const [selectedContact, setSelectedContact] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
@@ -93,35 +103,35 @@ const Invoices = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Billing</h1>
-            <p className="text-[13px] text-muted-foreground">Invoices, receivables & payables</p>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Faturamento</h1>
+            <p className="text-[13px] text-muted-foreground">Faturas, contas a receber e a pagar</p>
           </div>
           <div className="flex gap-2">
             <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  Contact
+                  Contato
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>New Contact</DialogTitle>
+                  <DialogTitle>Novo Contato</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2">
                   <Select value={contactType} onValueChange={(v) => setContactType(v as "customer" | "vendor")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="customer">Customer</SelectItem>
-                      <SelectItem value="vendor">Vendor</SelectItem>
+                      <SelectItem value="customer">Cliente</SelectItem>
+                      <SelectItem value="vendor">Fornecedor</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input placeholder="Name" value={newContact.name} onChange={(e) => setNewContact({ ...newContact, name: e.target.value })} />
-                  <Input placeholder="Email" value={newContact.email} onChange={(e) => setNewContact({ ...newContact, email: e.target.value })} />
-                  <Input placeholder="Document (CNPJ/CPF)" value={newContact.document} onChange={(e) => setNewContact({ ...newContact, document: e.target.value })} />
+                  <Input placeholder="Nome" value={newContact.name} onChange={(e) => setNewContact({ ...newContact, name: e.target.value })} />
+                  <Input placeholder="E-mail" value={newContact.email} onChange={(e) => setNewContact({ ...newContact, email: e.target.value })} />
+                  <Input placeholder="Documento (CNPJ/CPF)" value={newContact.document} onChange={(e) => setNewContact({ ...newContact, document: e.target.value })} />
                   <Button onClick={handleCreateContact} disabled={!newContact.name || createCustomer.isPending || createVendor.isPending} className="w-full">
                     {(createCustomer.isPending || createVendor.isPending) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Create {contactType}
+                    Criar {contactType === "customer" ? "Cliente" : "Fornecedor"}
                   </Button>
                 </div>
               </DialogContent>
@@ -131,24 +141,24 @@ const Invoices = () => {
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  Invoice
+                  Fatura
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>New Invoice</DialogTitle>
+                  <DialogTitle>Nova Fatura</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-2 max-h-[60vh] overflow-y-auto">
                   <div className="grid grid-cols-2 gap-3">
                     <Select value={direction} onValueChange={(v) => { setDirection(v as "receivable" | "payable"); setSelectedContact(""); }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="receivable">Receivable (Income)</SelectItem>
-                        <SelectItem value="payable">Payable (Expense)</SelectItem>
+                        <SelectItem value="receivable">A Receber (Receita)</SelectItem>
+                        <SelectItem value="payable">A Pagar (Despesa)</SelectItem>
                       </SelectContent>
                     </Select>
                     <Select value={selectedContact} onValueChange={setSelectedContact}>
-                      <SelectTrigger><SelectValue placeholder={direction === "receivable" ? "Customer" : "Vendor"} /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={direction === "receivable" ? "Cliente" : "Fornecedor"} /></SelectTrigger>
                       <SelectContent>
                         {(direction === "receivable" ? customers.data : vendors.data)?.map((c) => (
                           <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -157,25 +167,25 @@ const Invoices = () => {
                     </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <Input placeholder="Invoice #" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+                    <Input placeholder="Nº da Fatura" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
                     <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-[13px] font-medium text-foreground">Line Items</p>
+                    <p className="text-[13px] font-medium text-foreground">Itens</p>
                     {items.map((item, idx) => (
                       <div key={idx} className="grid grid-cols-[1fr_60px_80px] gap-2">
-                        <Input placeholder="Description" value={item.description} onChange={(e) => {
+                        <Input placeholder="Descrição" value={item.description} onChange={(e) => {
                           const next = [...items];
                           next[idx].description = e.target.value;
                           setItems(next);
                         }} />
-                        <Input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => {
+                        <Input type="number" placeholder="Qtd" value={item.quantity} onChange={(e) => {
                           const next = [...items];
                           next[idx].quantity = Number(e.target.value);
                           setItems(next);
                         }} />
-                        <Input type="number" placeholder="Price" value={item.unit_price || ""} onChange={(e) => {
+                        <Input type="number" placeholder="Preço" value={item.unit_price || ""} onChange={(e) => {
                           const next = [...items];
                           next[idx].unit_price = Number(e.target.value);
                           setItems(next);
@@ -183,7 +193,7 @@ const Invoices = () => {
                       </div>
                     ))}
                     <Button variant="ghost" size="sm" onClick={() => setItems([...items, { description: "", quantity: 1, unit_price: 0 }])}>
-                      <Plus className="h-3 w-3 mr-1" /> Add item
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar item
                     </Button>
                   </div>
 
@@ -196,7 +206,7 @@ const Invoices = () => {
 
                   <Button onClick={handleCreateInvoice} disabled={!invoiceNumber || !dueDate || createInvoice.isPending} className="w-full">
                     {createInvoice.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Create Invoice
+                    Criar Fatura
                   </Button>
                 </div>
               </DialogContent>
@@ -204,7 +214,7 @@ const Invoices = () => {
           </div>
         </div>
 
-        {/* Summary Cards */}
+        {/* Resumo */}
         <div className="grid grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-5 pb-4">
@@ -213,7 +223,7 @@ const Invoices = () => {
                   <ArrowDownLeft className="h-4 w-4 text-success" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Receivables</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">A Receber</p>
                   <p className="text-lg font-semibold text-foreground">{formatCurrency(totalReceivable)}</p>
                 </div>
               </div>
@@ -226,7 +236,7 @@ const Invoices = () => {
                   <ArrowUpRight className="h-4 w-4 text-destructive" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Payables</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">A Pagar</p>
                   <p className="text-lg font-semibold text-foreground">{formatCurrency(totalPayable)}</p>
                 </div>
               </div>
@@ -239,7 +249,7 @@ const Invoices = () => {
                   <FileText className="h-4 w-4 text-warning" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Overdue</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Vencidas</p>
                   <p className="text-lg font-semibold text-foreground">{overdueCount}</p>
                 </div>
               </div>
@@ -252,7 +262,7 @@ const Invoices = () => {
                   <Users className="h-4 w-4 text-info" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Contacts</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Contatos</p>
                   <p className="text-lg font-semibold text-foreground">
                     {(customers.data?.length || 0) + (vendors.data?.length || 0)}
                   </p>
@@ -262,13 +272,13 @@ const Invoices = () => {
           </Card>
         </div>
 
-        {/* Tabs */}
+        {/* Abas */}
         <Tabs defaultValue="invoices">
           <TabsList>
-            <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="receivables">Receivables</TabsTrigger>
-            <TabsTrigger value="payables">Payables</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="invoices">Faturas</TabsTrigger>
+            <TabsTrigger value="receivables">A Receber</TabsTrigger>
+            <TabsTrigger value="payables">A Pagar</TabsTrigger>
+            <TabsTrigger value="contacts">Contatos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="invoices">
@@ -277,46 +287,46 @@ const Invoices = () => {
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="p-3 font-medium">Invoice #</th>
-                      <th className="p-3 font-medium">Type</th>
-                      <th className="p-3 font-medium">Contact</th>
-                      <th className="p-3 font-medium">Due Date</th>
-                      <th className="p-3 font-medium text-right">Amount</th>
+                      <th className="p-3 font-medium">Nº Fatura</th>
+                      <th className="p-3 font-medium">Tipo</th>
+                      <th className="p-3 font-medium">Contato</th>
+                      <th className="p-3 font-medium">Vencimento</th>
+                      <th className="p-3 font-medium text-right">Valor</th>
                       <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium">Actions</th>
+                      <th className="p-3 font-medium">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {invoices.isLoading ? (
                       <tr><td colSpan={7} className="p-8 text-center"><Loader2 className="h-4 w-4 animate-spin mx-auto" /></td></tr>
                     ) : (invoices.data || []).length === 0 ? (
-                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No invoices yet</td></tr>
+                      <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Nenhuma fatura ainda</td></tr>
                     ) : (
                       (invoices.data || []).map((inv) => (
                         <tr key={inv.id} className="border-b last:border-0 hover:bg-muted/30">
                           <td className="p-3 font-medium">{inv.invoice_number}</td>
                           <td className="p-3">
                             <Badge variant="outline" className="text-[11px]">
-                              {inv.direction === "receivable" ? "Income" : "Expense"}
+                              {inv.direction === "receivable" ? "Receita" : "Despesa"}
                             </Badge>
                           </td>
                           <td className="p-3">{(inv as any).customer?.name || (inv as any).vendor?.name || "—"}</td>
-                          <td className="p-3">{format(new Date(inv.due_date), "MMM dd, yyyy")}</td>
+                          <td className="p-3">{format(new Date(inv.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
                           <td className="p-3 text-right font-medium">{formatCurrency(Number(inv.total_amount))}</td>
                           <td className="p-3">
                             <Badge className={`${statusColors[inv.status] || ""} text-[11px] border-0`}>
-                              {inv.status}
+                              {statusLabels[inv.status] || inv.status}
                             </Badge>
                           </td>
                           <td className="p-3">
                             {inv.status === "draft" && (
                               <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => updateInvoiceStatus.mutate({ id: inv.id, status: "sent" })}>
-                                Send
+                                Enviar
                               </Button>
                             )}
                             {inv.status === "sent" && (
                               <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => updateInvoiceStatus.mutate({ id: inv.id, status: "paid" })}>
-                                Mark Paid
+                                Marcar como Paga
                               </Button>
                             )}
                           </td>
@@ -335,25 +345,25 @@ const Invoices = () => {
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="p-3 font-medium">Customer</th>
-                      <th className="p-3 font-medium">Due Date</th>
-                      <th className="p-3 font-medium text-right">Amount Due</th>
-                      <th className="p-3 font-medium text-right">Paid</th>
+                      <th className="p-3 font-medium">Cliente</th>
+                      <th className="p-3 font-medium">Vencimento</th>
+                      <th className="p-3 font-medium text-right">Valor</th>
+                      <th className="p-3 font-medium text-right">Pago</th>
                       <th className="p-3 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(receivables.data || []).length === 0 ? (
-                      <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No receivables</td></tr>
+                      <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum recebível</td></tr>
                     ) : (
                       (receivables.data || []).map((r) => (
                         <tr key={r.id} className="border-b last:border-0">
                           <td className="p-3">{(r as any).customer?.name || "—"}</td>
-                          <td className="p-3">{format(new Date(r.due_date), "MMM dd, yyyy")}</td>
+                          <td className="p-3">{format(new Date(r.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
                           <td className="p-3 text-right font-medium">{formatCurrency(Number(r.amount_due))}</td>
                           <td className="p-3 text-right">{formatCurrency(Number(r.amount_paid))}</td>
                           <td className="p-3">
-                            <Badge className={`${statusColors[r.status] || ""} text-[11px] border-0`}>{r.status}</Badge>
+                            <Badge className={`${statusColors[r.status] || ""} text-[11px] border-0`}>{statusLabels[r.status] || r.status}</Badge>
                           </td>
                         </tr>
                       ))
@@ -370,25 +380,25 @@ const Invoices = () => {
                 <table className="w-full text-[13px]">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="p-3 font-medium">Vendor</th>
-                      <th className="p-3 font-medium">Due Date</th>
-                      <th className="p-3 font-medium text-right">Amount Due</th>
-                      <th className="p-3 font-medium text-right">Paid</th>
+                      <th className="p-3 font-medium">Fornecedor</th>
+                      <th className="p-3 font-medium">Vencimento</th>
+                      <th className="p-3 font-medium text-right">Valor</th>
+                      <th className="p-3 font-medium text-right">Pago</th>
                       <th className="p-3 font-medium">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(payables.data || []).length === 0 ? (
-                      <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No payables</td></tr>
+                      <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Nenhum pagável</td></tr>
                     ) : (
                       (payables.data || []).map((p) => (
                         <tr key={p.id} className="border-b last:border-0">
                           <td className="p-3">{(p as any).vendor?.name || "—"}</td>
-                          <td className="p-3">{format(new Date(p.due_date), "MMM dd, yyyy")}</td>
+                          <td className="p-3">{format(new Date(p.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
                           <td className="p-3 text-right font-medium">{formatCurrency(Number(p.amount_due))}</td>
                           <td className="p-3 text-right">{formatCurrency(Number(p.amount_paid))}</td>
                           <td className="p-3">
-                            <Badge className={`${statusColors[p.status] || ""} text-[11px] border-0`}>{p.status}</Badge>
+                            <Badge className={`${statusColors[p.status] || ""} text-[11px] border-0`}>{statusLabels[p.status] || p.status}</Badge>
                           </td>
                         </tr>
                       ))
@@ -404,14 +414,14 @@ const Invoices = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Users className="h-4 w-4" /> Customers
+                    <Users className="h-4 w-4" /> Clientes
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <table className="w-full text-[13px]">
                     <tbody>
                       {(customers.data || []).length === 0 ? (
-                        <tr><td className="p-6 text-center text-muted-foreground">No customers</td></tr>
+                        <tr><td className="p-6 text-center text-muted-foreground">Nenhum cliente</td></tr>
                       ) : (
                         (customers.data || []).map((c) => (
                           <tr key={c.id} className="border-b last:border-0">
@@ -428,14 +438,14 @@ const Invoices = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <Building2 className="h-4 w-4" /> Vendors
+                    <Building2 className="h-4 w-4" /> Fornecedores
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <table className="w-full text-[13px]">
                     <tbody>
                       {(vendors.data || []).length === 0 ? (
-                        <tr><td className="p-6 text-center text-muted-foreground">No vendors</td></tr>
+                        <tr><td className="p-6 text-center text-muted-foreground">Nenhum fornecedor</td></tr>
                       ) : (
                         (vendors.data || []).map((v) => (
                           <tr key={v.id} className="border-b last:border-0">

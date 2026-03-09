@@ -25,46 +25,46 @@ import { useState } from "react";
 
 const navSections = [
   {
-    label: "Overview",
+    label: "Visão Geral",
     items: [
       { title: "Dashboard", url: "/", icon: LayoutDashboard },
-      { title: "Cash Flow", url: "/cash-flow", icon: TrendingUp },
+      { title: "Fluxo de Caixa", url: "/cash-flow", icon: TrendingUp },
     ],
   },
   {
-    label: "Money",
+    label: "Financeiro",
     items: [
-      { title: "Accounts", url: "/accounts", icon: Building2 },
-      { title: "Transactions", url: "/transactions", icon: ArrowLeftRight },
-      { title: "Payments", url: "/payments", icon: Wallet },
-      { title: "Cards", url: "/cards", icon: CreditCard },
-      { title: "Treasury", url: "/treasury", icon: Landmark },
+      { title: "Contas", url: "/accounts", icon: Building2 },
+      { title: "Transações", url: "/transactions", icon: ArrowLeftRight },
+      { title: "Pagamentos", url: "/payments", icon: Wallet },
+      { title: "Cartões", url: "/cards", icon: CreditCard },
+      { title: "Tesouraria", url: "/treasury", icon: Landmark },
     ],
   },
   {
-    label: "Billing",
+    label: "Faturamento",
     items: [
-      { title: "Invoices", url: "/invoices", icon: FileText },
-      { title: "Expenses", url: "/expenses", icon: Receipt },
+      { title: "Faturas", url: "/invoices", icon: FileText },
+      { title: "Despesas", url: "/expenses", icon: Receipt },
       { title: "Ledger", url: "/ledger", icon: BookOpen },
     ],
   },
   {
-    label: "Intelligence",
+    label: "Inteligência",
     items: [
       { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
-      { title: "Savings", url: "/savings", icon: Sparkles },
-      { title: "Risk", url: "/risk", icon: Shield },
+      { title: "Economias", url: "/savings", icon: Sparkles },
+      { title: "Riscos", url: "/risk", icon: Shield },
       { title: "Insights", url: "/insights", icon: Lightbulb },
       { title: "Score", url: "/financial-score", icon: ShieldCheck },
-      { title: "Automation", url: "/automation", icon: Zap },
+      { title: "Automação", url: "/automation", icon: Zap },
     ],
   },
 ];
 
 const bottomItems = [
-  { title: "Team", url: "/team", icon: Users },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Equipe", url: "/team", icon: Users },
+  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -154,7 +154,7 @@ export function AppSidebar() {
               collapsed && "rotate-180"
             )}
           />
-          {!collapsed && <span className="text-[12px]">Collapse</span>}
+          {!collapsed && <span className="text-[12px]">Recolher</span>}
         </button>
       </div>
     </aside>
