@@ -7,7 +7,7 @@ import { RunwayCard } from "@/components/dashboard/RunwayCard";
 import { RecentInvoices } from "@/components/dashboard/RecentInvoices";
 import { ExpenseBreakdown } from "@/components/dashboard/ExpenseBreakdown";
 import { AccountsOverview } from "@/components/dashboard/AccountsOverview";
-import { DollarSign, TrendingUp, CreditCard, PiggyBank, Loader2, FileDown, Wallet, Receipt } from "lucide-react";
+import { DollarSign, TrendingUp, PiggyBank, Loader2, FileDown, CreditCard, Receipt, Wallet } from "lucide-react";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useProfile } from "@/hooks/use-profile";
@@ -20,7 +20,7 @@ import { useWallets } from "@/hooks/use-wallets";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subMonths } from "date-fns";
 
-const formatCurrency = (value: number) => {
+const fmt = (value: number) => {
   if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
   if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
   return `$${value.toFixed(0)}`;
@@ -44,12 +44,9 @@ const Dashboard = () => {
   const netCashFlow = monthlyRevenue - monthlyExpenses;
   const firstName = profile?.name?.split(" ")[0] || "there";
   const totalCashPosition = totalBalance + totalWalletBalance;
-
-  // Receivables/Payables totals
   const totalReceivable = receivables.filter(r => r.status === "open").reduce((s, r) => s + Number(r.amount_due) - Number(r.amount_paid), 0);
   const totalPayable = payables.filter(p => p.status === "open").reduce((s, p) => s + Number(p.amount_due) - Number(p.amount_paid), 0);
 
-  // Build monthly chart data
   const monthlyData = Array.from({ length: 6 }, (_, i) => {
     const d = subMonths(new Date(), 5 - i);
     const month = format(d, "MMM");
@@ -62,7 +59,6 @@ const Dashboard = () => {
     return { month, revenue, expenses: exp, net: revenue - exp };
   });
 
-  // Forecast data
   const forecastData = forecasts.map((f) => ({
     date: format(new Date(f.forecast_date), "MMM dd"),
     balance: Number(f.predicted_balance),
@@ -74,7 +70,7 @@ const Dashboard = () => {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       </AppLayout>
     );
@@ -82,47 +78,45 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-[1200px] space-y-6">
+      <div className="max-w-[1120px] space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Good morning, {firstName}</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">
-              Financial overview for {format(new Date(), "MMMM yyyy")}
-            </p>
+            <h1 className="text-[20px] font-bold text-foreground tracking-tight">Welcome back, {firstName}</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{format(new Date(), "EEEE, MMMM d, yyyy")}</p>
           </div>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-[12px] font-bold text-foreground hover:bg-secondary transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3.5 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary transition-all active:scale-[0.98] shadow-xs"
           >
             <FileDown className="h-3.5 w-3.5" />
             Export
           </button>
         </div>
 
-        {/* KPI Row */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Primary KPIs */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
-            title="Total Cash Position"
-            value={formatCurrency(totalCashPosition)}
-            subtitle={wallets.length > 0 ? `${accounts.length} accounts · ${wallets.length} wallets` : `${accounts.length} accounts`}
+            title="Cash Position"
+            value={fmt(totalCashPosition)}
+            subtitle={`${accounts.length} accounts · ${wallets.length} wallets`}
             icon={<DollarSign className="h-4 w-4" />}
           />
           <MetricCard
-            title="Monthly Revenue"
-            value={formatCurrency(monthlyRevenue)}
-            subtitle={`${totalReceivable > 0 ? formatCurrency(totalReceivable) + " receivable" : "No open receivables"}`}
+            title="Revenue"
+            value={fmt(monthlyRevenue)}
+            subtitle={totalReceivable > 0 ? `${fmt(totalReceivable)} receivable` : "No open receivables"}
             icon={<TrendingUp className="h-4 w-4" />}
           />
           <MetricCard
-            title="Monthly Expenses"
-            value={formatCurrency(monthlyExpenses + expensesThisMonth)}
-            subtitle={`${pendingExpenses > 0 ? formatCurrency(pendingExpenses) + " pending approval" : "All approved"}`}
+            title="Expenses"
+            value={fmt(monthlyExpenses + expensesThisMonth)}
+            subtitle={pendingExpenses > 0 ? `${fmt(pendingExpenses)} pending` : "All approved"}
             icon={<Receipt className="h-4 w-4" />}
           />
           <MetricCard
             title="Net Cash Flow"
-            value={formatCurrency(netCashFlow)}
+            value={fmt(netCashFlow)}
             change={netCashFlow >= 0 ? "Positive" : "Negative"}
             changeType={netCashFlow >= 0 ? "positive" : "negative"}
             icon={<PiggyBank className="h-4 w-4" />}
@@ -130,40 +124,40 @@ const Dashboard = () => {
         </div>
 
         {/* Secondary KPIs */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <MetricCard
-            title="Cards Active"
+            title="Active Cards"
             value={`${cards.filter(c => c.status === "active").length}`}
-            subtitle={cardSpent > 0 ? `${formatCurrency(cardSpent)} of ${formatCurrency(cardLimit)} spent` : "No card spend this month"}
+            subtitle={cardSpent > 0 ? `${fmt(cardSpent)} / ${fmt(cardLimit)}` : "No spend"}
             icon={<CreditCard className="h-4 w-4" />}
           />
           <MetricCard
-            title="Open Receivables"
-            value={formatCurrency(totalReceivable)}
-            subtitle={`${receivables.filter(r => r.status === "open").length} invoices pending`}
+            title="Receivables"
+            value={fmt(totalReceivable)}
+            subtitle={`${receivables.filter(r => r.status === "open").length} open`}
             icon={<TrendingUp className="h-4 w-4" />}
           />
           <MetricCard
-            title="Open Payables"
-            value={formatCurrency(totalPayable)}
-            subtitle={`${payables.filter(p => p.status === "open").length} bills due`}
+            title="Payables"
+            value={fmt(totalPayable)}
+            subtitle={`${payables.filter(p => p.status === "open").length} due`}
             icon={<Wallet className="h-4 w-4" />}
           />
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Forecast + Runway */}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <div className="lg:col-span-2 metric-card animate-slide-up">
-            <p className="text-[13px] font-medium text-muted-foreground mb-1">Cash Flow Forecast</p>
+            <p className="section-label mb-3">Cash Flow Forecast</p>
             {forecastData.length > 0 ? (
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={forecastData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCurrency} />
-                    <Tooltip formatter={(value: number) => [formatCurrency(value), "Balance"]} />
-                    <Area type="monotone" dataKey="balance" stroke="hsl(var(--primary))" strokeWidth={2} fill="hsl(var(--primary) / 0.08)" />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={fmt} />
+                    <Tooltip formatter={(value: number) => [fmt(value), "Balance"]} />
+                    <Area type="monotone" dataKey="balance" stroke="hsl(var(--foreground))" strokeWidth={2} fill="hsl(var(--foreground) / 0.04)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -174,35 +168,31 @@ const Dashboard = () => {
           <RunwayCard totalCash={totalCashPosition} monthlyBurn={monthlyExpenses + expensesThisMonth} />
         </div>
 
-        {/* Revenue vs Expenses + Health Score */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Revenue vs Expenses + Health */}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <div className="lg:col-span-2 metric-card animate-slide-up">
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-[13px] font-medium text-muted-foreground">Revenue vs Expenses</p>
-                <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">
-                  {formatCurrency(monthlyRevenue)} <span className="text-base font-normal text-muted-foreground">/ {formatCurrency(monthlyExpenses)}</span>
+                <p className="section-label">Revenue vs Expenses</p>
+                <p className="mt-2 text-[24px] font-bold tracking-tight text-foreground leading-none">
+                  {fmt(monthlyRevenue)} <span className="text-[15px] font-normal text-muted-foreground">/ {fmt(monthlyExpenses)}</span>
                 </p>
               </div>
               <div className="flex gap-4 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-primary" />Revenue
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-border" />Expenses
-                </span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground" />Revenue</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-border" />Expenses</span>
               </div>
             </div>
             {monthlyData.some((d) => d.revenue > 0 || d.expenses > 0) ? (
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={3}>
+                  <BarChart data={monthlyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={2}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCurrency} />
-                    <Tooltip formatter={(value: number) => [formatCurrency(value), ""]} />
-                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="expenses" fill="hsl(var(--border))" radius={[3, 3, 0, 0]} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={fmt} />
+                    <Tooltip formatter={(value: number) => [fmt(value), ""]} />
+                    <Bar dataKey="revenue" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" fill="hsl(var(--border))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -214,14 +204,14 @@ const Dashboard = () => {
         </div>
 
         {/* Invoices + Expenses + Alerts */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <RecentInvoices invoices={invoices} />
           <ExpenseBreakdown expenses={expenses} />
           <FinancialAlerts />
         </div>
 
         {/* Accounts + Recommendations */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           <AccountsOverview accounts={accounts} wallets={wallets} />
           <SmartRecommendations />
         </div>
