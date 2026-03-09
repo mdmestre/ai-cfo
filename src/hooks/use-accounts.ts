@@ -32,7 +32,32 @@ export function useAccounts() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["accounts"] }),
   });
 
+  const updateAccount = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; bank_name?: string; account_type?: string; balance?: number }) => {
+      const { data, error } = await supabase
+        .from("accounts")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+  });
+
+  const deleteAccount = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("accounts")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+  });
+
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
-  return { accounts, isLoading, createAccount, totalBalance };
+  return { accounts, isLoading, createAccount, updateAccount, deleteAccount, totalBalance };
 }

@@ -3,48 +3,91 @@ import { useAccounts } from "@/hooks/use-accounts";
 import { useCompany } from "@/hooks/use-company";
 import { useBankConnections } from "@/hooks/use-bank-connections";
 import { BankConnectionCard } from "@/components/accounts/BankConnectionCard";
-import { Building2, Plus, Loader2, DollarSign, Wallet, RefreshCw } from "lucide-react";
+import { AccountCard } from "@/components/accounts/AccountCard";
+import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
-  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toFixed(2)}`;
-};
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-const banks = [
-  { name: "Itau Unibanco", provider: "open_finance_br" },
+const availableBanks = [
+  { name: "Itaú Unibanco", provider: "open_finance_br" },
   { name: "Nubank", provider: "open_finance_br" },
   { name: "Bradesco", provider: "open_finance_br" },
-  { name: "JP Morgan Chase", provider: "plaid" },
+  { name: "Banco do Brasil", provider: "open_finance_br" },
+  { name: "Santander", provider: "open_finance_br" },
+  { name: "Inter", provider: "open_finance_br" },
+  { name: "C6 Bank", provider: "open_finance_br" },
+  { name: "BTG Pactual", provider: "open_finance_br" },
 ];
 
 const Accounts = () => {
-  const { accounts, isLoading: accountsLoading, createAccount, totalBalance } = useAccounts();
-  const { connections, isLoading: connectionsLoading, connectBank } = useBankConnections();
+  const { accounts, isLoading: accountsLoading, createAccount, updateAccount, deleteAccount, totalBalance } = useAccounts();
+  const { connections, isLoading: connectionsLoading, connectBank, disconnectBank, syncConnection } = useBankConnections();
   const { company } = useCompany();
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ bank_name: "", account_type: "checking" as string, balance: "" });
+  const [formData, setFormData] = useState({ bank_name: "", account_type: "checking", balance: "" });
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
 
   const handleConnect = async (institution: string, provider: string) => {
+    setConnectingId(institution);
     try {
       await connectBank.mutateAsync({ provider, institution });
-      toast.success(`Successfully connected to ${institution}`);
-    } catch (error) {
-      toast.error("Failed to connect institution.");
+      toast.success(`${institution} conectado com sucesso!`);
+    } catch {
+      toast.error("Falha ao conectar instituição.");
+    } finally {
+      setConnectingId(null);
+    }
+  };
+
+  const handleDisconnect = async (connectionId: string, name: string) => {
+    try {
+      await disconnectBank.mutateAsync(connectionId);
+      toast.success(`${name} desconectado.`);
+    } catch {
+      toast.error("Falha ao desconectar.");
+    }
+  };
+
+  const handleSync = async (connectionId: string) => {
+    setSyncingId(connectionId);
+    try {
+      await syncConnection.mutateAsync(connectionId);
+      toast.success("Dados sincronizados!");
+    } catch {
+      toast.error("Falha na sincronização.");
+    } finally {
+      setSyncingId(null);
     }
   };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    createAccount.mutate({
-      bank_name: formData.bank_name,
-      account_type: formData.account_type,
-      balance: parseFloat(formData.balance) || 0,
-    });
-    setFormData({ bank_name: "", account_type: "checking", balance: "" });
-    setShowForm(false);
+    createAccount.mutate(
+      { bank_name: formData.bank_name, account_type: formData.account_type, balance: parseFloat(formData.balance) || 0 },
+      {
+        onSuccess: () => {
+          toast.success("Conta criada com sucesso!");
+          setFormData({ bank_name: "", account_type: "checking", balance: "" });
+          setShowForm(false);
+        },
+      }
+    );
+  };
+
+  const handleUpdate = (id: string, data: { bank_name?: string; account_type?: string; balance?: number }) => {
+    updateAccount.mutate(
+      { id, ...data },
+      { onSuccess: () => toast.success("Conta atualizada!") }
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta conta?")) return;
+    deleteAccount.mutate(id, { onSuccess: () => toast.success("Conta excluída.") });
   };
 
   const isLoading = accountsLoading || connectionsLoading;
@@ -59,131 +102,162 @@ const Accounts = () => {
     );
   }
 
+  const connectedCount = connections.filter((c) => c.status === "connected").length;
+
   return (
     <AppLayout>
       <div className="max-w-[1200px] space-y-8 animate-fade-in">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground tracking-tight">Accounts</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">{company?.name} — manage your financial backbone</p>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Contas</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              {company?.name} — gerencie contas bancárias e conexões
+            </p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary/80 transition-all active:scale-95"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add Manual
-            </button>
-          </div>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-[12px] font-bold text-primary-foreground hover:opacity-90 transition-all active:scale-[0.98] shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Adicionar Conta
+          </button>
         </div>
 
-        {/* Financial Highlights */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="metric-card bg-primary text-white border-0">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="metric-card bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-0">
             <div className="flex items-center gap-2 mb-1">
-              <DollarSign className="h-4 w-4 text-white/60" />
-              <p className="text-[13px] font-medium text-white/70">Total Net Position</p>
+              <DollarSign className="h-4 w-4 opacity-60" />
+              <p className="text-[12px] font-medium opacity-70">Posição Total</p>
             </div>
-            <p className="text-2xl font-semibold tracking-tight">{formatCurrency(totalBalance)}</p>
+            <p className="text-2xl font-bold tracking-tight">{formatCurrency(totalBalance)}</p>
+            <p className="mt-1 text-[11px] opacity-50">{accounts.length} conta(s) ativa(s)</p>
           </div>
           <div className="metric-card">
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="h-4 w-4 text-muted-foreground" />
-              <p className="text-[13px] font-medium text-muted-foreground">Connected Accounts</p>
+              <p className="text-[12px] font-medium text-muted-foreground">Conexões Bancárias</p>
             </div>
-            <p className="text-2xl font-semibold text-foreground">{accounts.length}</p>
+            <p className="text-2xl font-bold text-foreground">{connectedCount}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{availableBanks.length} disponíveis</p>
           </div>
           <div className="metric-card">
             <div className="flex items-center gap-2 mb-1">
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
-              <p className="text-[13px] font-medium text-muted-foreground">Sync Health</p>
+              <p className="text-[12px] font-medium text-muted-foreground">Status de Sync</p>
             </div>
-            <p className="text-2xl font-semibold text-success">Healthy</p>
+            <p className={`text-2xl font-bold ${connectedCount > 0 ? "text-success" : "text-muted-foreground"}`}>
+              {connectedCount > 0 ? "Saudável" : "Nenhum"}
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Open Finance Brasil</p>
           </div>
         </div>
 
-        {/* Bank Connection Section (The Brex Approach) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-foreground">Connect Institutions</h2>
-            <span className="text-xxs font-bold uppercase tracking-widest text-primary/40 bg-primary/5 px-2 py-0.5 rounded">Via Open Finance</span>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {banks.map((bank) => {
-              const isConnected = connections.some((c: any) => c.institution_name === bank.name);
-              return (
-                <BankConnectionCard
-                  key={bank.name}
-                  institution={bank.name}
-                  status={isConnected ? 'connected' : 'not_connected'}
-                  onConnect={() => handleConnect(bank.name, bank.provider)}
-                />
-              );
-            })}
-          </div>
-        </div>
-
+        {/* Manual Account Form */}
         {showForm && (
-          <form onSubmit={handleCreate} className="metric-card space-y-4 animate-slide-up bg-secondary/20">
-            <p className="text-[14px] font-bold text-foreground">Manual Account Onboarding</p>
+          <form onSubmit={handleCreate} className="metric-card space-y-4 animate-slide-up border-primary/20 ring-1 ring-primary/10">
+            <p className="text-[13px] font-bold text-foreground">Nova Conta Manual</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground/70">Bank Name</label>
-                <input type="text" placeholder="e.g. Atlas Internal" value={formData.bank_name} onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })} required className="w-full rounded-md border border-border/50 bg-white px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 outline-none focus:ring-1 focus:ring-primary shadow-xs" />
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-muted-foreground">Banco</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Nubank, Itaú..."
+                  value={formData.bank_name}
+                  onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                  required
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+                />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground/70">Category</label>
-                <select value={formData.account_type} onChange={(e) => setFormData({ ...formData, account_type: e.target.value })} className="w-full rounded-md border border-border/50 bg-white px-3 py-2 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-primary shadow-xs">
-                  <option value="checking">Checking</option>
-                  <option value="savings">Savings</option>
-                  <option value="credit">Corporate Credit</option>
-                  <option value="investment">Treasury</option>
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-muted-foreground">Tipo</label>
+                <select
+                  value={formData.account_type}
+                  onChange={(e) => setFormData({ ...formData, account_type: e.target.value })}
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="checking">Conta Corrente</option>
+                  <option value="savings">Poupança</option>
+                  <option value="credit">Crédito Corporativo</option>
+                  <option value="investment">Investimento</option>
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-muted-foreground/70">Current Balance</label>
-                <input type="number" step="0.01" placeholder="0.00" value={formData.balance} onChange={(e) => setFormData({ ...formData, balance: e.target.value })} className="w-full rounded-md border border-border/50 bg-white px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground/40 outline-none focus:ring-1 focus:ring-primary shadow-xs" />
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase text-muted-foreground">Saldo Atual</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={formData.balance}
+                  onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                  className="w-full rounded-md border border-border bg-card px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
+                />
               </div>
               <div className="flex items-end">
-                <button type="submit" disabled={createAccount.isPending} className="w-full flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-[13px] font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm">
+                <button
+                  type="submit"
+                  disabled={createAccount.isPending}
+                  className="w-full flex items-center justify-center gap-2 rounded-md bg-foreground px-3 py-2 text-[13px] font-bold text-background hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
                   {createAccount.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  Finalize Setup
+                  Criar Conta
                 </button>
               </div>
             </div>
           </form>
         )}
 
-        {/* Existing Accounts List */}
+        {/* Bank Connections */}
         <div className="space-y-4">
-          <h2 className="text-[15px] font-bold text-foreground">Financial Architecture</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-foreground">Conectar Instituições</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60 bg-primary/5 px-2.5 py-1 rounded-full">
+              Open Finance
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {availableBanks.map((bank) => {
+              const connection = connections.find((c) => c.institution_name === bank.name);
+              const isConnected = !!connection;
+              return (
+                <BankConnectionCard
+                  key={bank.name}
+                  institution={bank.name}
+                  provider={bank.provider}
+                  status={isConnected ? "connected" : "not_connected"}
+                  lastSynced={connection?.last_synced_at}
+                  isConnecting={connectingId === bank.name}
+                  isSyncing={!!connection && syncingId === connection.id}
+                  onConnect={() => handleConnect(bank.name, bank.provider)}
+                  onDisconnect={() => connection && handleDisconnect(connection.id, bank.name)}
+                  onSync={() => connection && handleSync(connection.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Accounts List */}
+        <div className="space-y-4">
+          <h2 className="text-[15px] font-bold text-foreground">Suas Contas</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {accounts.length === 0 ? (
               <div className="col-span-full py-12 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-secondary/10">
                 <Building2 className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                <p className="text-[13px] font-medium text-muted-foreground text-center">No active accounts. Use Open Finance above to sync real data.</p>
+                <p className="text-[13px] font-medium text-muted-foreground text-center">
+                  Nenhuma conta ativa. Conecte um banco acima ou adicione manualmente.
+                </p>
               </div>
             ) : (
-              accounts.map((account: any) => (
-                <div key={account.id} className="metric-card group hover:border-primary/20 transition-all cursor-default">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary group-hover:bg-primary/5 transition-colors">
-                        <Building2 className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-foreground">{account.bank_name}</p>
-                        <p className="text-xxs font-bold uppercase tracking-tight text-muted-foreground/60">{account.account_type}</p>
-                      </div>
-                    </div>
-                    <div className="h-1.5 w-1.5 rounded-full bg-success ring-4 ring-success/10" title="System Synced" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-2xl font-bold tracking-tight text-foreground">{formatCurrency(Number(account.balance))}</p>
-                    <p className="text-xxs font-medium text-muted-foreground/60 uppercase">Last Sync: Just now</p>
-                  </div>
-                </div>
+              accounts.map((account) => (
+                <AccountCard
+                  key={account.id}
+                  account={account}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  isUpdating={updateAccount.isPending}
+                />
               ))
             )}
           </div>
