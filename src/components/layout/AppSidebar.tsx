@@ -16,6 +16,8 @@ import {
   Receipt,
   Wallet,
   FileText,
+  Sparkles,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -48,9 +50,11 @@ const navSections = [
   {
     label: "Intelligence",
     items: [
+      { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
+      { title: "Savings", url: "/savings", icon: Sparkles },
+      { title: "Risk", url: "/risk", icon: Shield },
       { title: "Insights", url: "/insights", icon: Lightbulb },
       { title: "Score", url: "/financial-score", icon: ShieldCheck },
-      { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
       { title: "Automation", url: "/automation", icon: Zap },
     ],
   },
