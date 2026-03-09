@@ -382,6 +382,9 @@ function PaymentsTab() {
                     <span className={`text-[13px] font-medium ${isDeferred ? "text-accent" : "text-foreground"}`}>
                       {p.suggestedDate}
                     </span>
+                    {isDeferred && <span className="ml-1.5 text-xxs text-accent">↗ adiado</span>}
+                  </td>
+                    </span>
                     {isDeferred && <span className="ml-1.5 text-xxs text-accent">↗ deferred</span>}
                   </td>
                   <td className="px-4 py-3 text-xxs text-muted-foreground max-w-[240px]">{p.reason}</td>
