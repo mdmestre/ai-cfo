@@ -234,13 +234,13 @@ function SubscriptionsTab({ searchQuery, setSearchQuery }: { searchQuery: string
         </div>
       </div>
 
-      {/* Subscription List */}
+      {/* Lista de Assinaturas */}
       <div className="flex items-center gap-2">
         <div className="flex flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 max-w-sm">
           <Search className="h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search subscriptions..."
+            placeholder="Buscar assinaturas..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
