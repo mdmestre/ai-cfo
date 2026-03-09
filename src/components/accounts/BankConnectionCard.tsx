@@ -1,63 +1,141 @@
-import { Building2, Plus, Info, CheckCircle2 } from "lucide-react";
+import { Building2, Plus, CheckCircle2, Unplug, RefreshCw, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
 
 interface BankConnectionCardProps {
-    institution: string;
-    status: 'connected' | 'not_connected';
-    onConnect?: () => void;
+  institution: string;
+  provider: string;
+  status: "connected" | "not_connected";
+  lastSynced?: string | null;
+  isConnecting?: boolean;
+  isSyncing?: boolean;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+  onSync?: () => void;
 }
 
-export function BankConnectionCard({ institution, status, onConnect }: BankConnectionCardProps) {
-    return (
-        <div className={cn(
-            "group relative flex items-center justify-between rounded-xl border border-border bg-white p-5 shadow-sm transition-all hover:border-primary/20 hover:shadow-md",
-            status === 'connected' ? "bg-primary/[0.01]" : ""
-        )}>
-            <div className="flex items-center gap-4">
-                <div className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-full border border-border bg-secondary/30 transition-colors group-hover:bg-white",
-                    status === 'connected' ? "border-primary/20" : ""
-                )}>
-                    <Building2 className={cn(
-                        "h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary",
-                        status === 'connected' ? "text-primary" : ""
-                    )} />
-                </div>
-                <div>
-                    <p className="text-[15px] font-semibold text-foreground">{institution}</p>
-                    <div className="mt-1 flex items-center gap-1.5 text-xxs font-medium uppercase tracking-wider text-muted-foreground/60">
-                        {status === 'connected' ? (
-                            <>
-                                <CheckCircle2 className="h-3 w-3 text-success font-bold" />
-                                <span className="text-success">Connected via Open Finance</span>
-                            </>
-                        ) : (
-                            <>
-                                <Info className="h-3 w-3" />
-                                <span>Available for sync</span>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
+const providerLogos: Record<string, string> = {
+  "Itaú Unibanco": "🟠",
+  "Nubank": "🟣",
+  "Bradesco": "🔴",
+  "Banco do Brasil": "🟡",
+  "Santander": "🔴",
+  "Inter": "🟠",
+  "C6 Bank": "⚫",
+  "BTG Pactual": "🔵",
+  "JP Morgan Chase": "🔵",
+  "Bank of America": "🔴",
+  "Citibank": "🔵",
+  "HSBC": "🔴",
+};
 
-            <button
-                onClick={onConnect}
-                disabled={status === 'connected'}
-                className={cn(
-                    "flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all",
-                    status === 'connected'
-                        ? "cursor-default text-muted-foreground/40 bg-secondary/50"
-                        : "bg-primary text-white hover:opacity-90 active:scale-95 shadow-sm"
-                )}
-            >
-                {status === 'connected' ? "Synced" : (
-                    <>
-                        <Plus className="h-4 w-4" />
-                        Connect
-                    </>
-                )}
-            </button>
+const providerLabels: Record<string, string> = {
+  open_finance_br: "Open Finance Brasil",
+  plaid: "Plaid",
+  manual: "Manual",
+};
+
+export function BankConnectionCard({
+  institution,
+  provider,
+  status,
+  lastSynced,
+  isConnecting,
+  isSyncing,
+  onConnect,
+  onDisconnect,
+  onSync,
+}: BankConnectionCardProps) {
+  const logo = providerLogos[institution] || "🏦";
+  const connected = status === "connected";
+
+  return (
+    <div
+      className={cn(
+        "group relative flex flex-col rounded-xl border bg-card p-5 transition-all",
+        connected
+          ? "border-success/30 shadow-sm"
+          : "border-border hover:border-primary/30 hover:shadow-md"
+      )}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              "flex h-11 w-11 items-center justify-center rounded-xl text-xl transition-colors",
+              connected ? "bg-success/10" : "bg-secondary"
+            )}
+          >
+            {logo}
+          </div>
+          <div>
+            <p className="text-[14px] font-bold text-foreground">{institution}</p>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+              <span className="uppercase tracking-wider">
+                {providerLabels[provider] || provider}
+              </span>
+            </div>
+          </div>
         </div>
-    );
+
+        {connected && (
+          <div className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5">
+            <CheckCircle2 className="h-3 w-3 text-success" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-success">
+              Ativo
+            </span>
+          </div>
+        )}
+      </div>
+
+      {connected && lastSynced && (
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          Última sincronização:{" "}
+          <span className="font-medium text-foreground">
+            {formatDistanceToNow(new Date(lastSynced), { addSuffix: true })}
+          </span>
+        </p>
+      )}
+
+      <div className="mt-4 flex items-center gap-2">
+        {connected ? (
+          <>
+            <button
+              onClick={onSync}
+              disabled={isSyncing}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary transition-all disabled:opacity-50"
+            >
+              {isSyncing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Sincronizar
+            </button>
+            <button
+              onClick={onDisconnect}
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-destructive/20 px-3 py-2 text-[12px] font-semibold text-destructive hover:bg-destructive/5 transition-all"
+            >
+              <Unplug className="h-3.5 w-3.5" />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={onConnect}
+            disabled={isConnecting}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-[13px] font-bold text-primary-foreground hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-sm"
+          >
+            {isConnecting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <>
+                <ExternalLink className="h-3.5 w-3.5" />
+                Conectar Banco
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
