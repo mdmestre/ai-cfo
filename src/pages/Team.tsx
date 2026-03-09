@@ -157,20 +157,22 @@ const Team = () => {
 
                         <div className="flex items-center gap-2">
                           {editingId === m.id && isAdmin && !isOwnerRow ? (
-                            <select
+                            <Select
                               value={m.role}
-                              onChange={(e) => {
-                                updateRole.mutate({ membershipId: m.id, newRole: e.target.value as AppRole });
+                              onValueChange={(v) => {
+                                updateRole.mutate({ membershipId: m.id, newRole: v as AppRole });
                                 setEditingId(null);
                               }}
-                              onBlur={() => setEditingId(null)}
-                              autoFocus
-                              className="rounded-lg border border-border bg-background px-2 py-1 text-[11px] text-foreground"
                             >
-                              {ASSIGNABLE_ROLES.map((r) => (
-                                <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
-                              ))}
-                            </select>
+                              <SelectTrigger className="h-7 text-[11px] w-28">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ASSIGNABLE_ROLES.map((r) => (
+                                  <SelectItem key={r} value={r}>{ROLE_CONFIG[r].label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           ) : (
                             <button
                               onClick={() => isAdmin && !isOwnerRow ? setEditingId(m.id) : null}

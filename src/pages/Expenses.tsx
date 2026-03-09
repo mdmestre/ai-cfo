@@ -165,17 +165,37 @@ const ExpenseManagement = () => {
           <form onSubmit={handleCreate} className="metric-card space-y-3 animate-slide-up">
             <p className="text-[14px] font-bold text-foreground">Registrar Despesa</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 text-[13px]">R$</span>
-                <input type="number" step="0.01" placeholder="0,00" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required className="w-full rounded-md border border-border bg-card pl-9 pr-3 py-2 text-[13px] outline-none" />
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Valor (R$)</Label>
+                <Input placeholder="0,00" value={form.amount} onChange={(e) => {
+                  const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                  setForm({ ...form, amount: val });
+                }} required className="h-9 text-[13px]" />
               </div>
-              <input type="text" placeholder="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="text" placeholder="Fornecedor" value={form.merchant} onChange={(e) => setForm({ ...form, merchant: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px]">
-                <option value="">Sem categoria</option>
-                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Descrição</Label>
+                <Input placeholder="Descrição" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Fornecedor</Label>
+                <Input placeholder="Fornecedor" value={form.merchant} onChange={(e) => setForm({ ...form, merchant: e.target.value })} className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Categoria</Label>
+                <Select value={form.category_id || "none"} onValueChange={(v) => setForm({ ...form, category_id: v === "none" ? "" : v })}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue placeholder="Sem categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem categoria</SelectItem>
+                    {categories.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Data</Label>
+                <Input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} className="h-9 text-[13px]" />
+              </div>
               <div className="flex gap-2">
                 <label className="flex-1 flex items-center gap-2 rounded-md border border-dashed border-border bg-card px-3 py-2 text-[13px] text-muted-foreground cursor-pointer hover:bg-secondary/50">
                   <Upload className="h-3.5 w-3.5" />
