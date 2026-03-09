@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import atlasLogo from "@/assets/atlas-logo.png";
-import api from "@/lib/api";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,26 +20,25 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { data } = await api.post("/auth/login", { email, password });
-        localStorage.setItem("atlas_token", data.token);
-        localStorage.setItem("atlas_user", JSON.stringify(data.user));
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
         navigate("/");
-        window.location.reload(); // Force reload to refresh context
       } else {
-        const { data } = await api.post("/auth/register", { email, password, name });
-        localStorage.setItem("atlas_token", data.token);
-        localStorage.setItem("atlas_user", JSON.stringify(data.user));
-        toast({
-          title: "Account created",
-          description: "Welcome to Atlas!",
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { name } },
         });
-        navigate("/");
-        window.location.reload();
+        if (error) throw error;
+        toast({
+          title: "Conta criada",
+          description: "Verifique seu email para confirmar a conta, ou faça login se o auto-confirm estiver ativo.",
+        });
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.response?.data?.error || "Authentication failed",
+        title: "Erro",
+        description: error.message || "Falha na autenticação",
         variant: "destructive",
       });
     } finally {
@@ -50,7 +49,6 @@ export default function Auth() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/50 px-4">
       <div className="w-full max-w-sm space-y-6">
-        {/* Logo */}
         <div className="flex flex-col items-center gap-3">
           <img src={atlasLogo} alt="Atlas" className="h-8" />
           <p className="text-[13px] text-muted-foreground">
@@ -58,7 +56,6 @@ export default function Auth() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           {!isLogin && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2">

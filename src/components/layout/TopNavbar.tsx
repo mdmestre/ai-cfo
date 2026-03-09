@@ -8,8 +8,9 @@ export function TopNavbar() {
   const { profile } = useProfile();
   const { company } = useCompany();
 
-  const initials = profile?.name
-    ? profile.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+  const displayName = profile?.name || profile?.email || "";
+  const initials = displayName
+    ? displayName.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "??";
 
   return (
