@@ -37,11 +37,24 @@ export function useMemberships() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("memberships")
-        .select("*, profiles!memberships_user_id_fkey(name, email)")
+        .select("*")
         .eq("company_id", companyId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []) as Membership[];
+
+      // Enrich with profile data
+      const userIds = (data || []).map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, email")
+        .in("user_id", userIds);
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+
+      return (data || []).map((m: any) => ({
+        ...m,
+        profiles: profileMap.get(m.user_id) || null,
+      })) as Membership[];
     },
     enabled: !!companyId,
   });
