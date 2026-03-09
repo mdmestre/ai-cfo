@@ -76,27 +76,28 @@ const Team = () => {
                   Adicionar Membro
                 </h2>
                 <form onSubmit={handleInvite} className="space-y-3">
-                  <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">E-mail</label>
-                    <input
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">E-mail</Label>
+                    <Input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="colega@empresa.com"
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="h-9 text-[13px]"
                     />
                   </div>
-                  <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Função</label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as AppRole)}
-                      className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-[13px] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                    >
-                      {ASSIGNABLE_ROLES.map((r) => (
-                        <option key={r} value={r}>{ROLE_CONFIG[r].label}</option>
-                      ))}
-                    </select>
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Função</Label>
+                    <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
+                      <SelectTrigger className="h-9 text-[13px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ASSIGNABLE_ROLES.map((r) => (
+                          <SelectItem key={r} value={r}>{ROLE_CONFIG[r].label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <button
                     type="submit"
