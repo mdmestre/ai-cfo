@@ -4,7 +4,9 @@ import { useCompany } from "@/hooks/use-company";
 import { useBankConnections } from "@/hooks/use-bank-connections";
 import { BankConnectionCard } from "@/components/accounts/BankConnectionCard";
 import { AccountCard } from "@/components/accounts/AccountCard";
-import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2 } from "lucide-react";
+import { PluggyConnectButton } from "@/components/accounts/PluggyConnectButton";
+import { PluggySyncButton } from "@/components/accounts/PluggySyncButton";
+import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -212,17 +214,65 @@ const Accounts = () => {
           </form>
         )}
 
-        {/* Bank Connections */}
+        {/* Pluggy Open Finance */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-[15px] font-bold text-foreground">Conectar Instituições</h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60 bg-primary/5 px-2.5 py-1 rounded-full">
-              Open Finance
+            <div>
+              <h2 className="text-[15px] font-bold text-foreground flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                Open Finance Brasil — Pluggy
+              </h2>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Conecte seus bancos automaticamente e sincronize saldos, transações e investimentos em tempo real.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <PluggySyncButton />
+            </div>
+          </div>
+
+          <div className="metric-card border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-bold text-foreground">Conectar novo banco</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Conecte qualquer banco brasileiro via Open Finance. Suporte a saldos, extratos, investimentos e pagamentos.
+                </p>
+              </div>
+              <PluggyConnectButton />
+            </div>
+          </div>
+
+          {/* Existing connections */}
+          {connections.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {connections.map((conn) => (
+                <BankConnectionCard
+                  key={conn.id}
+                  institution={conn.institution_name}
+                  provider={conn.provider}
+                  status={conn.status === "connected" ? "connected" : "not_connected"}
+                  lastSynced={conn.last_synced_at}
+                  isSyncing={syncingId === conn.id}
+                  onDisconnect={() => handleDisconnect(conn.id, conn.institution_name)}
+                  onSync={() => handleSync(conn.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Manual Bank Connections */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[15px] font-bold text-foreground">Conexão Manual</h2>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 bg-secondary px-2.5 py-1 rounded-full">
+              Manual
             </span>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {availableBanks.map((bank) => {
-              const connection = connections.find((c) => c.institution_name === bank.name);
+              const connection = connections.find((c) => c.institution_name === bank.name && c.provider !== "pluggy");
               const isConnected = !!connection;
               return (
                 <BankConnectionCard
