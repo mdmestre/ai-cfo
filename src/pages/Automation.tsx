@@ -94,9 +94,9 @@ const Automation = () => {
   const activeAlerts = automations.filter(r => r.is_active).length;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { key: "subscriptions", label: "Subscriptions", icon: <CreditCard className="h-3.5 w-3.5" /> },
-    { key: "payments", label: "Payment Scheduler", icon: <Calendar className="h-3.5 w-3.5" /> },
-    { key: "alerts", label: "Financial Rules", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
+    { key: "subscriptions", label: "Assinaturas", icon: <CreditCard className="h-3.5 w-3.5" /> },
+    { key: "payments", label: "Agendamento", icon: <Calendar className="h-3.5 w-3.5" /> },
+    { key: "alerts", label: "Regras Financeiras", icon: <Bell className="h-3.5 w-3.5" />, badge: activeAlerts },
   ];
 
   if (isLoading) {
