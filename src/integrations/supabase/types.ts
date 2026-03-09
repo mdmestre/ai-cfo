@@ -99,6 +99,113 @@ export type Database = {
           },
         ]
       }
+      automation_logs: {
+        Row: {
+          action_result: Json | null
+          company_id: string
+          error_message: string | null
+          executed_at: string
+          id: string
+          rule_id: string
+          status: string
+          trigger_data: Json | null
+        }
+        Insert: {
+          action_result?: Json | null
+          company_id: string
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          rule_id: string
+          status?: string
+          trigger_data?: Json | null
+        }
+        Update: {
+          action_result?: Json | null
+          company_id?: string
+          error_message?: string | null
+          executed_at?: string
+          id?: string
+          rule_id?: string
+          status?: string
+          trigger_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_rules: {
+        Row: {
+          action_config: Json
+          action_type: string
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          name: string
+          trigger_config: Json
+          trigger_count: number
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          action_type: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name: string
+          trigger_config?: Json
+          trigger_count?: number
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name?: string
+          trigger_config?: Json
+          trigger_count?: number
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_snapshots: {
         Row: {
           balance: number
@@ -1135,6 +1242,153 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_events: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          is_resolved: boolean
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          is_resolved?: boolean
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          is_resolved?: boolean
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      risk_scores: {
+        Row: {
+          calculated_at: string
+          company_id: string
+          created_at: string
+          factors: Json
+          id: string
+          risk_level: string
+          score: number
+        }
+        Insert: {
+          calculated_at?: string
+          company_id: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          risk_level?: string
+          score?: number
+        }
+        Update: {
+          calculated_at?: string
+          company_id?: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          risk_level?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_insights: {
+        Row: {
+          affected_expenses: Json | null
+          category: string
+          company_id: string
+          confidence: number
+          created_at: string
+          current_spend: number
+          description: string
+          id: string
+          insight_type: string
+          potential_savings: number
+          recommendation: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          affected_expenses?: Json | null
+          category?: string
+          company_id: string
+          confidence?: number
+          created_at?: string
+          current_spend?: number
+          description?: string
+          id?: string
+          insight_type?: string
+          potential_savings?: number
+          recommendation?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          affected_expenses?: Json | null
+          category?: string
+          company_id?: string
+          confidence?: number
+          created_at?: string
+          current_spend?: number
+          description?: string
+          id?: string
+          insight_type?: string
+          potential_savings?: number
+          recommendation?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_insights_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
