@@ -16,6 +16,16 @@ import {
   Receipt,
   Wallet,
   FileText,
+  Sparkles,
+  Shield,
+} from "lucide-react";
+  BookOpen,
+  Zap,
+  CreditCard,
+  Users,
+  Receipt,
+  Wallet,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
