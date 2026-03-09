@@ -138,10 +138,24 @@ const ExpenseManagement = () => {
           <form onSubmit={handleCreateCategory} className="metric-card space-y-3 animate-slide-up">
             <p className="text-[14px] font-bold text-foreground">Nova Categoria</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <input type="text" placeholder="Nome" value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="text" placeholder="Código (ex: VIAGEM)" value={catForm.code} onChange={(e) => setCatForm({ ...catForm, code: e.target.value })} required className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <input type="number" step="0.01" placeholder="Limite de orçamento (opcional)" value={catForm.budget_limit} onChange={(e) => setCatForm({ ...catForm, budget_limit: e.target.value })} className="rounded-md border border-border bg-card px-3 py-2 text-[13px] outline-none" />
-              <button type="submit" disabled={createCategory.isPending} className="rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50">Criar</button>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Nome</Label>
+                <Input placeholder="Nome" value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Código</Label>
+                <Input placeholder="Ex: VIAGEM" value={catForm.code} onChange={(e) => setCatForm({ ...catForm, code: e.target.value })} required className="h-9 text-[13px]" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Limite (R$)</Label>
+                <Input placeholder="0,00" value={catForm.budget_limit} onChange={(e) => {
+                  const val = e.target.value.replace(/[^\d,]/g, '').replace(',', '.');
+                  setCatForm({ ...catForm, budget_limit: val });
+                }} className="h-9 text-[13px]" />
+              </div>
+              <div className="flex items-end">
+                <button type="submit" disabled={createCategory.isPending} className="w-full rounded-md bg-foreground px-3 py-2 text-[13px] font-medium text-background hover:opacity-90 disabled:opacity-50 h-9">Criar</button>
+              </div>
             </div>
           </form>
         )}
