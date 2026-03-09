@@ -1,25 +1,43 @@
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import { useAccounts } from "./use-accounts";
 import { toast } from "sonner";
 
 export function useReports() {
-    const exportCSV = async () => {
-        try {
-            const response = await api.get("/reports/export/csv", {
-                responseType: 'blob'
-            });
+  const { accounts } = useAccounts();
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `atlas_report_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            toast.success("Report downloaded successfully");
-        } catch (error) {
-            toast.error("Failed to generate report");
-        }
-    };
+  const exportCSV = async () => {
+    try {
+      if (accounts.length === 0) {
+        toast.error("No accounts to export");
+        return;
+      }
+      const accountIds = accounts.map((a) => a.id);
+      const { data: transactions, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .in("account_id", accountIds)
+        .order("date", { ascending: false });
 
-    return { exportCSV };
+      if (error) throw error;
+
+      const header = "Date,Description,Category,Amount,Account ID\n";
+      const rows = (transactions || [])
+        .map((t) => `${t.date},${t.description},${t.category},${t.amount},${t.account_id}`)
+        .join("\n");
+
+      const blob = new Blob([header + rows], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `atlas_report_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Report downloaded successfully");
+    } catch {
+      toast.error("Failed to generate report");
+    }
+  };
+
+  return { exportCSV };
 }

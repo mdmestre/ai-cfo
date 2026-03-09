@@ -24,19 +24,21 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-secondary/50">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { company, isLoading: companyLoading } = useCompany();
 
-  if (loading || companyLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-secondary/50">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
+  if (companyLoading) return <LoadingScreen />;
   if (!company) return <CompanySetup />;
 
   return <>{children}</>;
@@ -45,14 +47,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AuthRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-secondary/50">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
+  if (loading) return <LoadingScreen />;
   if (user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

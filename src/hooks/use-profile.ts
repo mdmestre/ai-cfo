@@ -1,13 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useProfile() {
+  const { user } = useAuth();
+
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["profile", user?.id],
     queryFn: async () => {
-      const { data } = await api.get("/profile");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   return { profile, isLoading };
