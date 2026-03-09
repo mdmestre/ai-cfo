@@ -248,6 +248,60 @@ export type Database = {
           },
         ]
       }
+      bank_connections: {
+        Row: {
+          account_id: string | null
+          company_id: string
+          created_at: string
+          id: string
+          institution_name: string
+          last_synced_at: string | null
+          metadata: Json | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          institution_name: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          institution_name?: string
+          last_synced_at?: string | null
+          metadata?: Json | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_connections_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_connections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_transactions: {
         Row: {
           amount: number
