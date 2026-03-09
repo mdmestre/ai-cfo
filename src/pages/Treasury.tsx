@@ -4,6 +4,9 @@ import { Loader2, Plus, Landmark, TrendingUp, PiggyBank, ArrowUpRight, ArrowDown
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const fmt = (v: number) => {
   if (Math.abs(v) >= 1_000_000) return `R$${(v / 1_000_000).toFixed(1)}M`;
