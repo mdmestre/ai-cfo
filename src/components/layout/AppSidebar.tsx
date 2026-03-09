@@ -154,7 +154,7 @@ export function AppSidebar() {
               collapsed && "rotate-180"
             )}
           />
-          {!collapsed && <span className="text-[12px]">Collapse</span>}
+          {!collapsed && <span className="text-[12px]">Recolher</span>}
         </button>
       </div>
     </aside>
