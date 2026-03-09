@@ -23,6 +23,7 @@ import SettingsPage from "./pages/Settings";
 import Ledger from "./pages/Ledger";
 import Expenses from "./pages/Expenses";
 import CardsPage from "./pages/Cards";
+import Invoices from "./pages/Invoices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
