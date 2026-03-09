@@ -72,11 +72,14 @@ function AppRoutes() {
       <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
       <Route path="/financial-score" element={<ProtectedRoute><FinancialScore /></ProtectedRoute>} />
       <Route path="/ai-assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
-      <Route path="/automation" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
+      <Route path="/automation" element={<ProtectedRoute><AutomationPage /></ProtectedRoute>} />
+      <Route path="/automation-legacy" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
       <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
       <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
       <Route path="/cards" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+      <Route path="/savings" element={<ProtectedRoute><SavingsIntelligence /></ProtectedRoute>} />
+      <Route path="/risk" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
       <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
