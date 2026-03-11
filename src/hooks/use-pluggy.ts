@@ -2,28 +2,9 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "./use-company";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const PLUGGY_CONNECT_URL = "https://connect.pluggy.ai";
-
-interface PluggyAccount {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currencyCode: string;
-  number: string;
-  itemId: string;
-}
-
-interface PluggyTransaction {
-  id: string;
-  description: string;
-  descriptionRaw: string;
-  amount: number;
-  date: string;
-  category: string;
-  type: string;
-}
 
 export function usePluggy() {
   const { company } = useCompany();
@@ -39,13 +20,31 @@ export function usePluggy() {
     return data.accessToken as string;
   }, []);
 
+  const triggerFullSync = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("pluggy-sync");
+      if (error) throw error;
+
+      // Invalidate all relevant queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["forecasts"] });
+
+      return data;
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [queryClient]);
+
   const openPluggyConnect = useCallback(
     async (onSuccess?: (itemId: string) => void) => {
       setIsConnecting(true);
       try {
         const accessToken = await getConnectToken();
 
-        // Open Pluggy Connect widget in a popup
         const width = 450;
         const height = 700;
         const left = window.screenX + (window.innerWidth - width) / 2;
@@ -57,7 +56,6 @@ export function usePluggy() {
           `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
         );
 
-        // Listen for messages from the popup
         const handleMessage = async (event: MessageEvent) => {
           if (event.origin !== "https://connect.pluggy.ai") return;
 
@@ -78,16 +76,25 @@ export function usePluggy() {
               await saveConnection(itemId);
             }
 
+            // Trigger immediate full sync to fetch accounts and transactions
+            toast.info("Sincronizando dados bancários...");
+            try {
+              const syncResult = await triggerFullSync();
+              const txCount = syncResult?.transactions || 0;
+              const accCount = syncResult?.accounts || 0;
+              toast.success(`Sincronização completa! ${accCount} conta(s), ${txCount} transação(ões) importadas.`);
+            } catch (syncErr) {
+              console.error("Post-connect sync error:", syncErr);
+              toast.warning("Conexão salva, mas a sincronização será feita em breve automaticamente.");
+            }
+
             onSuccess?.(itemId);
             setIsConnecting(false);
-            queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
-            queryClient.invalidateQueries({ queryKey: ["accounts"] });
           }
         };
 
         window.addEventListener("message", handleMessage);
 
-        // Fallback: check if popup was closed manually
         const interval = setInterval(() => {
           if (popup?.closed) {
             clearInterval(interval);
@@ -101,7 +108,7 @@ export function usePluggy() {
         throw error;
       }
     },
-    [company, getConnectToken, queryClient]
+    [company, getConnectToken, queryClient, triggerFullSync]
   );
 
   const saveConnection = useCallback(
@@ -134,20 +141,10 @@ export function usePluggy() {
   );
 
   const syncAllConnections = useCallback(async () => {
-    setIsSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("pluggy-sync");
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ["bank-connections"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      return data;
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [queryClient]);
+    return triggerFullSync();
+  }, [triggerFullSync]);
 
-  const getAccounts = useCallback(async (itemId: string): Promise<PluggyAccount[]> => {
+  const getAccounts = useCallback(async (itemId: string) => {
     const { data, error } = await supabase.functions.invoke(
       `pluggy-auth/accounts?itemId=${itemId}`
     );
@@ -156,7 +153,7 @@ export function usePluggy() {
   }, []);
 
   const getTransactions = useCallback(
-    async (accountId: string, from?: string, to?: string): Promise<PluggyTransaction[]> => {
+    async (accountId: string, from?: string, to?: string) => {
       let path = `pluggy-auth/transactions?accountId=${accountId}`;
       if (from) path += `&from=${from}`;
       if (to) path += `&to=${to}`;
