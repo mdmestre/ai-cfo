@@ -44,7 +44,6 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Events: item/created, item/updated, item/error, item/deleted
     if (event === "item/updated" || event === "item/created") {
       const apiKey = await getPluggyApiKey();
 
@@ -70,6 +69,7 @@ serve(async (req) => {
 
       if (connections && connections.length > 0) {
         const conn = connections[0];
+        const companyId = conn.company_id;
 
         // Update connection status
         await supabase
@@ -83,59 +83,69 @@ serve(async (req) => {
               pluggy_status: item.status,
               pluggy_connector: item.connector?.name,
               accounts_count: accountsData.results?.length || 0,
+              last_webhook_sync: new Date().toISOString(),
             },
           })
           .eq("id", conn.id);
 
-        // Sync accounts into our accounts table
+        // Sync accounts and transactions
         for (const acc of accountsData.results || []) {
-          const existingAccount = await supabase
+          const bankName = `${item.connector?.name || "Pluggy"} - ${acc.name}`;
+          const accountType = acc.type === "BANK" ? "checking" : acc.type === "CREDIT" ? "credit" : "checking";
+
+          // Upsert account
+          const { data: existingAccount } = await supabase
             .from("accounts")
             .select("id")
-            .eq("company_id", conn.company_id)
-            .eq("bank_name", `${item.connector?.name || "Pluggy"} - ${acc.name}`)
+            .eq("company_id", companyId)
+            .eq("bank_name", bankName)
             .maybeSingle();
 
-          if (existingAccount.data) {
+          let internalAccountId: string;
+
+          if (existingAccount) {
             await supabase
               .from("accounts")
-              .update({ balance: acc.balance })
-              .eq("id", existingAccount.data.id);
+              .update({ balance: acc.balance || 0 })
+              .eq("id", existingAccount.id);
+            internalAccountId = existingAccount.id;
           } else {
-            await supabase.from("accounts").insert({
-              company_id: conn.company_id,
-              bank_name: `${item.connector?.name || "Pluggy"} - ${acc.name}`,
-              account_type: acc.type === "BANK" ? "checking" : acc.type === "CREDIT" ? "credit" : "checking",
+            const { data: newAcc } = await supabase.from("accounts").insert({
+              company_id: companyId,
+              bank_name: bankName,
+              account_type: accountType,
               balance: acc.balance || 0,
-            });
+            }).select("id").single();
+            internalAccountId = newAcc?.id;
           }
 
-          // Sync transactions for each account
-          const txRes = await fetch(`${PLUGGY_API_URL}/transactions?accountId=${acc.id}&pageSize=100`, {
+          if (!internalAccountId) continue;
+
+          // Fetch and persist transactions
+          const txRes = await fetch(`${PLUGGY_API_URL}/transactions?accountId=${acc.id}&pageSize=500`, {
             headers: { "X-API-KEY": apiKey },
           });
           if (txRes.ok) {
             const txData = await txRes.json();
-            // Get the internal account id
-            const internalAcc = await supabase
-              .from("accounts")
-              .select("id")
-              .eq("company_id", conn.company_id)
-              .eq("bank_name", `${item.connector?.name || "Pluggy"} - ${acc.name}`)
-              .maybeSingle();
+            for (const tx of txData.results || []) {
+              // Check for duplicate
+              const { data: existing } = await supabase
+                .from("transactions")
+                .select("id")
+                .eq("account_id", internalAccountId)
+                .eq("amount", tx.amount)
+                .eq("description", tx.description || tx.descriptionRaw || "")
+                .eq("date", tx.date)
+                .maybeSingle();
 
-            if (internalAcc.data) {
-              for (const tx of txData.results || []) {
-                await supabase.from("transactions").upsert(
-                  {
-                    account_id: internalAcc.data.id,
-                    amount: tx.amount,
-                    description: tx.description || tx.descriptionRaw || "",
-                    category: tx.category || "Uncategorized",
-                    date: tx.date,
-                  },
-                  { onConflict: "id", ignoreDuplicates: true }
-                ).select();
+              if (!existing) {
+                await supabase.from("transactions").insert({
+                  account_id: internalAccountId,
+                  amount: tx.amount,
+                  description: tx.description || tx.descriptionRaw || "",
+                  category: tx.category || "Uncategorized",
+                  date: tx.date,
+                });
               }
             }
           }

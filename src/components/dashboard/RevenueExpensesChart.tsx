@@ -1,53 +1,59 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useMemo } from "react";
+import { format, subMonths } from "date-fns";
 
-const data = [
-  { month: "Oct", revenue: 380000, expenses: 290000 },
-  { month: "Nov", revenue: 420000, expenses: 310000 },
-  { month: "Dec", revenue: 390000, expenses: 320000 },
-  { month: "Jan", revenue: 450000, expenses: 280000 },
-  { month: "Feb", revenue: 430000, expenses: 300000 },
-  { month: "Mar", revenue: 480000, expenses: 310000 },
-];
-
-const formatCurrency = (value: number) => `$${(value / 1000).toFixed(0)}K`;
+const formatCurrency = (value: number) => {
+  if (Math.abs(value) >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(value) >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}K`;
+  return `R$ ${value.toFixed(0)}`;
+};
 
 export function RevenueExpensesChart() {
+  const { transactions, monthlyRevenue, monthlyExpenses } = useTransactions();
+
+  const data = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = subMonths(new Date(), 5 - i);
+      const monthTxs = transactions.filter((t) => {
+        const td = new Date(t.date);
+        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+      });
+      const revenue = monthTxs.filter((t) => t.amount > 0).reduce((s, t) => s + Number(t.amount), 0);
+      const expenses = monthTxs.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
+      return { month: format(d, "MMM"), revenue, expenses };
+    });
+  }, [transactions]);
+
   return (
     <div className="metric-card animate-slide-up">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-[13px] font-medium text-muted-foreground">Revenue vs Expenses</p>
-          <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">$480K <span className="text-base font-normal text-muted-foreground">/ $310K</span></p>
+          <p className="text-[13px] font-medium text-muted-foreground">Receita vs Despesas</p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">
+            {formatCurrency(monthlyRevenue)} <span className="text-base font-normal text-muted-foreground">/ {formatCurrency(monthlyExpenses)}</span>
+          </p>
         </div>
         <div className="flex gap-4 text-xxs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-foreground" />
-            Revenue
+            Receita
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-border" />
-            Expenses
+            Despesas
           </span>
         </div>
       </div>
       <div className="h-[200px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }} barGap={3}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 94%)" vertical={false} />
-            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} tickFormatter={formatCurrency} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid hsl(0 0% 92%)',
-                borderRadius: '8px',
-                fontSize: '12px',
-                boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)',
-              }}
-              formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
-            />
-            <Bar dataKey="revenue" fill="hsl(0 0% 9%)" radius={[3, 3, 0, 0]} />
-            <Bar dataKey="expenses" fill="hsl(0 0% 88%)" radius={[3, 3, 0, 0]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCurrency} />
+            <Tooltip formatter={(value: number) => [formatCurrency(value), '']} />
+            <Bar dataKey="revenue" fill="hsl(var(--foreground))" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="expenses" fill="hsl(var(--border))" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
