@@ -26,11 +26,15 @@ export function useBankConnections() {
         .from("bank_connections")
         .select("*")
         .eq("company_id", company!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as BankConnection[];
+        .order("institution_name");
+      if (error) {
+        console.error("bank_connections:", error.message);
+        return [];
+      }
+      return (data as any) as BankConnection[];
     },
     enabled: !!company,
+    retry: false,
   });
 
   const connectBank = useMutation({
@@ -47,11 +51,10 @@ export function useBankConnections() {
         .from("bank_connections")
         .insert({
           company_id: company!.id,
-          institution_name: institution,
           provider,
-          status: "connected",
-          account_id: accountId || null,
-          last_synced_at: new Date().toISOString(),
+          institution_name: institution,
+          account_id: accountId,
+          status: "active",
         })
         .select()
         .single();
@@ -66,10 +69,7 @@ export function useBankConnections() {
 
   const disconnectBank = useMutation({
     mutationFn: async (connectionId: string) => {
-      const { error } = await supabase
-        .from("bank_connections")
-        .delete()
-        .eq("id", connectionId);
+      const { error } = await supabase.from("bank_connections").delete().eq("id", connectionId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -79,12 +79,9 @@ export function useBankConnections() {
 
   const syncConnection = useMutation({
     mutationFn: async (connectionId: string) => {
-      const { data, error } = await supabase
-        .from("bank_connections")
-        .update({ last_synced_at: new Date().toISOString(), status: "connected" })
-        .eq("id", connectionId)
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke("sync-bank-data", {
+        body: { connectionId },
+      });
       if (error) throw error;
       return data;
     },

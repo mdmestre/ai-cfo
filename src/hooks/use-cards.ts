@@ -17,25 +17,25 @@ export function useCards() {
         .select("*")
         .eq("company_id", companyId!)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("cards:", error.message);
+        return [];
+      }
       return data;
     },
     enabled: !!companyId,
+    retry: false,
   });
 
   const createCard = useMutation({
     mutationFn: async (card: { holder_name: string; card_type: string; spending_limit: number }) => {
-      const lastFour = Math.floor(1000 + Math.random() * 9000).toString();
-      const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 3);
       const { data, error } = await supabase
         .from("cards")
         .insert({
           ...card,
           company_id: companyId!,
-          holder_user_id: user!.id,
-          last_four: lastFour,
-          expires_at: expiresAt.toISOString().split("T")[0],
+          holder_id: user!.id,
+          status: "active",
         })
         .select()
         .single();
@@ -61,14 +61,17 @@ export function useCards() {
       if (cardIds.length === 0) return [];
       const { data, error } = await supabase
         .from("card_transactions")
-        .select("*, cards(holder_name, last_four)")
+        .select("*, cards(institution)")
         .in("card_id", cardIds)
-        .order("transaction_date", { ascending: false })
-        .limit(100);
-      if (error) throw error;
+        .order("transaction_date", { ascending: false });
+      if (error) {
+        console.error("card_transactions:", error.message);
+        return [];
+      }
       return data;
     },
     enabled: cardIds.length > 0,
+    retry: false,
   });
 
   const totalSpendLimit = cards.filter((c) => c.status === "active").reduce((s, c) => s + Number(c.spending_limit), 0);

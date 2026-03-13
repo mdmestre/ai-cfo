@@ -4,8 +4,8 @@ import { useCompany } from "@/hooks/use-company";
 import { useBankConnections } from "@/hooks/use-bank-connections";
 import { BankConnectionCard } from "@/components/accounts/BankConnectionCard";
 import { AccountCard } from "@/components/accounts/AccountCard";
-import { PluggyConnectButton } from "@/components/accounts/PluggyConnectButton";
-import { PluggySyncButton } from "@/components/accounts/PluggySyncButton";
+import { BelvoConnectButton } from "@/components/accounts/BelvoConnectButton";
+import { BelvoSyncButton } from "@/components/accounts/BelvoSyncButton";
 import { Plus, Loader2, DollarSign, Wallet, RefreshCw, Building2, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -214,20 +214,20 @@ const Accounts = () => {
           </form>
         )}
 
-        {/* Pluggy Open Finance */}
+        {/* Belvo Open Finance */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-[15px] font-bold text-foreground flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
-                Open Finance Brasil — Pluggy
+                Open Finance Brasil — Belvo
               </h2>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 Conecte seus bancos automaticamente e sincronize saldos, transações e investimentos em tempo real.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <PluggySyncButton />
+              <BelvoSyncButton />
             </div>
           </div>
 
@@ -239,7 +239,7 @@ const Accounts = () => {
                   Conecte qualquer banco brasileiro via Open Finance. Suporte a saldos, extratos, investimentos e pagamentos.
                 </p>
               </div>
-              <PluggyConnectButton />
+              <BelvoConnectButton />
             </div>
           </div>
 
@@ -272,7 +272,7 @@ const Accounts = () => {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {availableBanks.map((bank) => {
-              const connection = connections.find((c) => c.institution_name === bank.name && c.provider !== "pluggy");
+              const connection = connections.find((c) => c.institution_name === bank.name && c.provider !== "belvo");
               const isConnected = !!connection;
               return (
                 <BankConnectionCard

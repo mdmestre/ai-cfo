@@ -22,6 +22,12 @@ import AutomationPage from "./pages/AutomationPage";
 import Team from "./pages/Team";
 import SettingsPage from "./pages/Settings";
 import Ledger from "./pages/Ledger";
+import ChartOfAccounts from "./pages/ChartOfAccounts";
+import JournalEntries from "./pages/JournalEntries";
+import AccountingClosing from "./pages/AccountingClosing";
+import DreReport from "./pages/DreReport";
+import BalanceSheet from "./pages/BalanceSheet";
+import TaxesApurations from "./pages/Taxes";
 import Expenses from "./pages/Expenses";
 import CardsPage from "./pages/Cards";
 import Invoices from "./pages/Invoices";
@@ -76,6 +82,12 @@ function AppRoutes() {
       <Route path="/automation" element={<ProtectedRoute><AutomationPage /></ProtectedRoute>} />
       <Route path="/automation-legacy" element={<ProtectedRoute><Automation /></ProtectedRoute>} />
       <Route path="/ledger" element={<ProtectedRoute><Ledger /></ProtectedRoute>} />
+      <Route path="/chart-of-accounts" element={<ProtectedRoute><ChartOfAccounts /></ProtectedRoute>} />
+      <Route path="/journal-entries" element={<ProtectedRoute><JournalEntries /></ProtectedRoute>} />
+      <Route path="/accounting-closing" element={<ProtectedRoute><AccountingClosing /></ProtectedRoute>} />
+      <Route path="/dre-report" element={<ProtectedRoute><DreReport /></ProtectedRoute>} />
+      <Route path="/balance-sheet" element={<ProtectedRoute><BalanceSheet /></ProtectedRoute>} />
+      <Route path="/taxes" element={<ProtectedRoute><TaxesApurations /></ProtectedRoute>} />
       <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
       <Route path="/cards" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />

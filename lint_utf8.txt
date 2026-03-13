@@ -1,0 +1,334 @@
+﻿
+> vite_react_shadcn_ts@0.0.0 lint
+> eslint .
+
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\config\db.ts
+  10:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\middleware\auth.ts
+   5:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:87  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\middleware\error.ts
+  3:34  error  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+  3:53  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  3:63  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  3:74  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  7:38  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  7:48  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  7:74  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\ai-copilot\controller.ts
+  19:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\ai-copilot\service.ts
+  18:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\automation\automation-controller.ts
+  10:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\automation\automation-service.ts
+  16:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\billing\billing-controller.ts
+   9:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\billing\billing-service.ts
+   4:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\compliance\audit-service.ts
+   9:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\credit\credit-controller.ts
+  10:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\events\event-dispatcher.ts
+  21:69  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\expenses\expense-controller.ts
+   9:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\expenses\expense-service.ts
+   5:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\intelligence\intelligence-controller.ts
+  20:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\ledger\controller.ts
+   9:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\ledger\types.ts
+  30:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  59:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\payments\pix-controller.ts
+  13:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\payments\pix-service.ts
+  19:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\treasury\treasury-controller.ts
+  10:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\modules\treasury\treasury-service.ts
+   5:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\accounts.ts
+   8:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\auth.ts
+  10:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  10:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\automation.ts
+   8:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\bank-connections.ts
+   9:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\company.ts
+   9:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\insights.ts
+   8:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:90  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\payments.ts
+  8:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  8:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\reports.ts
+   9:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:81  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:78  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\team.ts
+   9:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   9:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:68  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:78  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\server\src\routes\transactions.ts
+   8:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\automation\AutomationBuilder.tsx
+  16:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\dashboard\FinancialAlerts.tsx
+  48:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:74  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\dashboard\SmartRecommendations.tsx
+  29:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\dashboard\UpcomingPayments.tsx
+  42:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\badge.tsx
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\button.tsx
+  47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\command.tsx
+  24:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\form.tsx
+  129:10  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\navigation-menu.tsx
+  111:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\sidebar.tsx
+  636:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\sonner.tsx
+  27:19  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\textarea.tsx
+  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\components\ui\toggle.tsx
+  37:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\contexts\AuthContext.tsx
+  19:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-automation-rules.ts
+  47:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  87:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-automations.ts
+  16:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-belvo.ts
+   38:45  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   40:7   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+   42:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+   49:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+   88:28  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  100:5   warning  React Hook useCallback has a missing dependency: 'saveConnection'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-company.ts
+  33:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-memberships.ts
+   46:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   52:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   54:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-risk.ts
+  54:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-savings.ts
+  37:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:46  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\hooks\use-treasury.ts
+   77:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Auth.tsx
+  37:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\AutomationPage.tsx
+  143:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  205:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Cards.tsx
+   37:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  192:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\CashFlow.tsx
+   80:9  error    'runningBalance' is never reassigned. Use 'const' instead                                                       prefer-const
+  161:6  warning  React Hook useMemo has a missing dependency: 'applyScenario'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  180:6  warning  React Hook useMemo has a missing dependency: 'applyScenario'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Expenses.tsx
+   50:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:73  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:74  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  236:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Invoices.tsx
+  313:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  313:87  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  361:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  396:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Ledger.tsx
+   61:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  235:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  272:45  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  293:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  313:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Payments.tsx
+   14:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\RiskDashboard.tsx
+  115:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\SavingsIntelligence.tsx
+   6:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  82:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Team.tsx
+   12:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Transactions.tsx
+  190:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\src\pages\Treasury.tsx
+   40:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  270:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  308:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  337:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\supabase\functions\risk-analysis\index.ts
+   41:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\supabase\functions\savings-analysis\index.ts
+   50:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   53:53  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   61:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\notee\Downloads\ATLAS_SAAS\ai-cfo\tailwind.config.ts
+  104:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Ô£û 187 problems (176 errors, 11 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

@@ -15,12 +15,15 @@ export function useTreasury() {
         .from("treasury_positions")
         .select("*")
         .eq("company_id", companyId!)
-        .eq("is_active", true)
-        .order("balance", { ascending: false });
-      if (error) throw error;
+        .order("name");
+      if (error) {
+        console.error("treasury_positions:", error.message);
+        return [];
+      }
       return data;
     },
     enabled: !!companyId,
+    retry: false,
   });
 
   const { data: products = [], isLoading: productsLoading } = useQuery({
@@ -30,27 +33,33 @@ export function useTreasury() {
         .from("yield_products")
         .select("*")
         .eq("company_id", companyId!)
-        .eq("is_available", true)
         .order("annual_rate", { ascending: false });
-      if (error) throw error;
-      return data;
+       if (error) {
+         console.error("yield_products:", error.message);
+         return [];
+       }
+       return data;
     },
     enabled: !!companyId,
+    retry: false,
   });
 
   const { data: events = [], isLoading: eventsLoading } = useQuery({
     queryKey: ["yield-events", companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+       const { data, error } = await supabase
         .from("yield_events")
         .select("*, treasury_positions(name)")
         .eq("company_id", companyId!)
-        .order("event_date", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data;
+        .order("event_date", { ascending: false });
+       if (error) {
+         console.error("yield_events:", error.message);
+         return [];
+       }
+       return data;
     },
     enabled: !!companyId,
+    retry: false,
   });
 
   const createPosition = useMutation({
@@ -105,26 +114,12 @@ export function useTreasury() {
 
   const invest = useMutation({
     mutationFn: async ({ position_id, product_id, amount }: { position_id: string; product_id?: string; amount: number }) => {
-      // Create event
-      const { error: evErr } = await supabase.from("yield_events").insert({
-        company_id: companyId!,
-        position_id,
-        product_id: product_id || null,
-        event_type: "investment",
-        amount,
-        description: `Investment of ${amount}`,
+      const { error } = await supabase.rpc("record_treasury_investment", {
+        p_position_id: position_id,
+        p_product_id: product_id,
+        p_amount: amount,
       });
-      if (evErr) throw evErr;
-
-      // Update position balance
-      const pos = positions.find((p: any) => p.id === position_id);
-      if (pos) {
-        const { error } = await supabase
-          .from("treasury_positions")
-          .update({ allocated_amount: Number(pos.allocated_amount) + amount })
-          .eq("id", position_id);
-        if (error) throw error;
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["treasury-positions"] });

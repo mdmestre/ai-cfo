@@ -19,7 +19,7 @@ export interface Membership {
   profiles?: { name: string; email: string } | null;
 }
 
-const ROLE_HIERARCHY: Record<AppRole, number> = {
+export const ROLE_HIERARCHY: Record<AppRole, number> = {
   owner: 4,
   admin: 3,
   member: 2,
@@ -37,24 +37,13 @@ export function useMemberships() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("memberships")
-        .select("*")
-        .eq("company_id", companyId!)
-        .order("created_at", { ascending: true });
+        .select(`
+          *,
+          profiles:profiles!user_id(name, email)
+        `)
+        .eq("company_id", companyId!);
       if (error) throw error;
-
-      // Enrich with profile data
-      const userIds = (data || []).map((m: any) => m.user_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, name, email")
-        .in("user_id", userIds);
-
-      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
-
-      return (data || []).map((m: any) => ({
-        ...m,
-        profiles: profileMap.get(m.user_id) || null,
-      })) as Membership[];
+      return (data as any) as Membership[];
     },
     enabled: !!companyId,
   });
@@ -65,32 +54,14 @@ export function useMemberships() {
 
   const inviteMember = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: AppRole }) => {
-      // Look up user by email in profiles
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (!profile) {
-        throw new Error("No user found with that email. They must sign up first.");
-      }
-
-      // Check if already a member
-      const existing = members.find((m) => m.user_id === profile.user_id);
-      if (existing) {
-        throw new Error("This user is already a member of this company.");
-      }
-
       const { data, error } = await supabase
         .from("memberships")
         .insert({
-          user_id: profile.user_id,
           company_id: companyId!,
           role,
-          invited_by: user!.id,
           invited_email: email,
-          accepted_at: new Date().toISOString(),
+          invited_by: user!.id,
+          user_id: null,
         })
         .select()
         .single();
@@ -106,11 +77,6 @@ export function useMemberships() {
 
   const updateRole = useMutation({
     mutationFn: async ({ membershipId, newRole }: { membershipId: string; newRole: AppRole }) => {
-      const target = members.find((m) => m.id === membershipId);
-      if (!target) throw new Error("Member not found");
-      if (target.role === "owner") throw new Error("Cannot change owner role");
-      if (newRole === "owner") throw new Error("Cannot promote to owner");
-
       const { error } = await supabase
         .from("memberships")
         .update({ role: newRole })
@@ -126,15 +92,7 @@ export function useMemberships() {
 
   const removeMember = useMutation({
     mutationFn: async (membershipId: string) => {
-      const target = members.find((m) => m.id === membershipId);
-      if (!target) throw new Error("Member not found");
-      if (target.role === "owner") throw new Error("Cannot remove the owner");
-      if (target.user_id === user?.id) throw new Error("Cannot remove yourself");
-
-      const { error } = await supabase
-        .from("memberships")
-        .delete()
-        .eq("id", membershipId);
+      const { error } = await supabase.from("memberships").delete().eq("id", membershipId);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -19,21 +19,32 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) throw error;
-        navigate("/");
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in.",
+        });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { name } },
+          options: {
+            data: {
+              name,
+            },
+          },
         });
         if (error) throw error;
         toast({
-          title: "Account created",
-          description: "Check your email to confirm your account.",
+          title: "Account created!",
+          description: "Check your email for the confirmation link.",
         });
       }
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Error",

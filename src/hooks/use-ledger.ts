@@ -16,12 +16,12 @@ export function useLedger() {
         .from("ledger_accounts")
         .select("*")
         .eq("company_id", companyId!)
-        .eq("is_active", true)
         .order("code");
       if (error) throw error;
       return data;
     },
     enabled: !!companyId,
+    retry: false,
   });
 
   const createLedgerAccount = useMutation({
@@ -44,8 +44,7 @@ export function useLedger() {
         .from("wallets")
         .select("*")
         .eq("company_id", companyId!)
-        .eq("is_active", true)
-        .order("created_at");
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -56,7 +55,7 @@ export function useLedger() {
     mutationFn: async (wallet: { name: string; wallet_type: string }) => {
       const { data, error } = await supabase
         .from("wallets")
-        .insert({ ...wallet, company_id: companyId! })
+        .insert({ ...wallet, company_id: companyId!, balance: 0 })
         .select()
         .single();
       if (error) throw error;
@@ -69,11 +68,10 @@ export function useLedger() {
     queryKey: ["journal-entries", companyId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("journal_entries")
-        .select("*, ledger_entries(*, ledger_accounts(code, name))")
+        .from("ledger_entries")
+        .select("*, ledger_entry_lines(*, ledger_accounts(name))")
         .eq("company_id", companyId!)
-        .order("entry_date", { ascending: false })
-        .limit(100);
+        .order("entry_date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -87,42 +85,34 @@ export function useLedger() {
       entry_date?: string;
       lines: { ledger_account_id: string; debit: number; credit: number }[];
     }) => {
-      const totalDebit = entry.lines.reduce((s, l) => s + l.debit, 0);
-      const totalCredit = entry.lines.reduce((s, l) => s + l.credit, 0);
-      if (Math.abs(totalDebit - totalCredit) > 0.001) {
-        throw new Error(`Entry must balance: debits (${totalDebit}) ≠ credits (${totalCredit})`);
-      }
-
-      const { data: je, error: jeError } = await supabase
-        .from("journal_entries")
+      const { data: mainEntry, error: mainErr } = await supabase
+        .from("ledger_entries")
         .insert({
           company_id: companyId!,
           description: entry.description,
           reference: entry.reference,
-          entry_date: entry.entry_date || new Date().toISOString().split("T")[0],
+          entry_date: entry.entry_date || new Date().toISOString(),
           created_by: user!.id,
         })
         .select()
         .single();
-      if (jeError) throw jeError;
 
-      const ledgerLines = entry.lines.map((l) => ({
-        journal_entry_id: je.id,
-        ledger_account_id: l.ledger_account_id,
-        debit: l.debit,
-        credit: l.credit,
-        description: "",
+      if (mainErr) throw mainErr;
+
+      const linesToInsert = entry.lines.map((l) => ({
+        ledger_entry_id: (mainEntry as any).id,
+        ...l,
       }));
 
-      const { error: leError } = await supabase.from("ledger_entries").insert(ledgerLines);
-      if (leError) throw leError;
+      const { error: linesErr } = await supabase.from("ledger_entry_lines").insert(linesToInsert);
+      if (linesErr) throw linesErr;
 
-      return je;
+      return mainEntry;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["journal-entries"] }),
   });
 
-  const totalWalletBalance = wallets.reduce((s, w) => s + Number(w.balance), 0);
+  const totalWalletBalance = wallets.reduce((s: number, w: any) => s + Number(w.balance), 0);
 
   return {
     ledgerAccounts, accountsLoading, createLedgerAccount,

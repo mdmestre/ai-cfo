@@ -17,7 +17,6 @@ export function useExpenses() {
         .from("expense_categories")
         .select("*")
         .eq("company_id", companyId!)
-        .eq("is_active", true)
         .order("name");
       if (error) throw error;
       return data;
@@ -44,7 +43,7 @@ export function useExpenses() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("expenses")
-        .select("*, expense_categories(name, code)")
+        .select("*, expense_categories(name)")
         .eq("company_id", companyId!)
         .order("expense_date", { ascending: false });
       if (error) throw error;
@@ -68,6 +67,7 @@ export function useExpenses() {
           ...expense,
           company_id: companyId!,
           submitted_by: user!.id,
+          status: "pending",
         })
         .select()
         .single();
@@ -81,11 +81,7 @@ export function useExpenses() {
     mutationFn: async ({ id, approved }: { id: string; approved: boolean }) => {
       const { error } = await supabase
         .from("expenses")
-        .update({
-          status: approved ? "approved" : "rejected",
-          approved_by: user!.id,
-          approved_at: new Date().toISOString(),
-        })
+        .update({ status: approved ? "approved" : "rejected" })
         .eq("id", id);
       if (error) throw error;
     },
@@ -93,23 +89,32 @@ export function useExpenses() {
   });
 
   const uploadReceipt = async (file: File): Promise<string> => {
-    const ext = file.name.split(".").pop();
-    const path = `${companyId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("receipts").upload(path, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from("receipts").getPublicUrl(path);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `receipts/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("expense-receipts")
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from("expense-receipts")
+      .getPublicUrl(filePath);
+
     return data.publicUrl;
   };
 
-  const totalPending = expenses.filter((e) => e.status === "pending").reduce((s, e) => s + Number(e.amount), 0);
-  const totalApproved = expenses.filter((e) => e.status === "approved").reduce((s, e) => s + Number(e.amount), 0);
+  const totalPending = expenses.filter((e: any) => e.status === "pending").reduce((s: number, e: any) => s + Number(e.amount), 0);
+  const totalApproved = expenses.filter((e: any) => e.status === "approved").reduce((s: number, e: any) => s + Number(e.amount), 0);
   const totalThisMonth = expenses
-    .filter((e) => {
+    .filter((e: any) => {
       const d = new Date(e.expense_date);
       const now = new Date();
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     })
-    .reduce((s, e) => s + Number(e.amount), 0);
+    .reduce((s: number, e: any) => s + Number(e.amount), 0);
 
   return {
     categories,

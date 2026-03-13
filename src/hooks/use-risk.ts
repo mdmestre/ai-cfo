@@ -15,8 +15,7 @@ export function useRiskEngine() {
         .from("risk_scores")
         .select("*")
         .eq("company_id", companyId!)
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .order("calculated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -30,8 +29,7 @@ export function useRiskEngine() {
         .from("risk_events")
         .select("*")
         .eq("company_id", companyId!)
-        .order("created_at", { ascending: false })
-        .limit(50);
+        .order("event_date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -41,7 +39,7 @@ export function useRiskEngine() {
   const runAnalysis = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("risk-analysis", {
-        body: { company_id: companyId },
+        body: { companyId },
       });
       if (error) throw error;
       return data;

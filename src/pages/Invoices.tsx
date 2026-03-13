@@ -54,13 +54,18 @@ const Invoices = () => {
   const [items, setItems] = useState([{ description: "", quantity: 1, unit_price: 0 }]);
   const [notes, setNotes] = useState("");
 
+  const [invoiceType, setInvoiceType] = useState("service");
+  const [series, setSeries] = useState("1");
+  const [municipality, setMunicipality] = useState("");
+  const [taxRegime, setTaxRegime] = useState("simples_nacional");
+
   const totalReceivable = (receivables.data || [])
     .filter((r) => r.status === "open" || r.status === "partial")
-    .reduce((s, r) => s + Number(r.amount_due) - Number(r.amount_paid), 0);
+    .reduce((s, r) => s + Number(r.amount), 0);
 
   const totalPayable = (payables.data || [])
     .filter((p) => p.status === "open" || p.status === "partial")
-    .reduce((s, p) => s + Number(p.amount_due) - Number(p.amount_paid), 0);
+    .reduce((s, p) => s + Number(p.amount), 0);
 
   const overdueCount = (invoices.data || []).filter((i) => i.status === "overdue").length;
 
@@ -74,6 +79,10 @@ const Invoices = () => {
         due_date: dueDate,
         items: items.filter((i) => i.description),
         notes,
+        invoice_type: invoiceType,
+        series,
+        municipality,
+        tax_regime: taxRegime,
       },
       {
         onSuccess: () => {
@@ -83,6 +92,10 @@ const Invoices = () => {
           setDueDate("");
           setNotes("");
           setSelectedContact("");
+          setInvoiceType("service");
+          setSeries("1");
+          setMunicipality("");
+          setTaxRegime("simples_nacional");
         },
       }
     );
@@ -169,6 +182,38 @@ const Invoices = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <Input placeholder="Nº da Fatura" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
                     <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-muted/20 border border-border rounded-md">
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-muted-foreground">Tipo</p>
+                      <Select value={invoiceType} onValueChange={setInvoiceType}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="service">Serviço</SelectItem>
+                          <SelectItem value="product">Produto</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-muted-foreground">Série</p>
+                      <Input value={series} onChange={(e) => setSeries(e.target.value)} className="h-8" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-muted-foreground">Regime</p>
+                      <Select value={taxRegime} onValueChange={setTaxRegime}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="simples_nacional">Simples</SelectItem>
+                          <SelectItem value="lucro_presumido">Lucro Presumido</SelectItem>
+                          <SelectItem value="lucro_real">Lucro Real</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-muted-foreground">Município Base</p>
+                      <Input placeholder="Ex: São Paulo" value={municipality} onChange={(e) => setMunicipality(e.target.value)} className="h-8" />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -360,8 +405,8 @@ const Invoices = () => {
                         <tr key={r.id} className="border-b last:border-0">
                           <td className="p-3">{(r as any).customer?.name || "—"}</td>
                           <td className="p-3">{format(new Date(r.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
-                          <td className="p-3 text-right font-medium">{formatCurrency(Number(r.amount_due))}</td>
-                          <td className="p-3 text-right">{formatCurrency(Number(r.amount_paid))}</td>
+                          <td className="p-3 text-right font-medium">{formatCurrency(Number(r.amount))}</td>
+                          <td className="p-3 text-right">{r.status === "paid" ? formatCurrency(Number(r.amount)) : formatCurrency(0)}</td>
                           <td className="p-3">
                             <Badge className={`${statusColors[r.status] || ""} text-[11px] border-0`}>{statusLabels[r.status] || r.status}</Badge>
                           </td>
@@ -395,8 +440,8 @@ const Invoices = () => {
                         <tr key={p.id} className="border-b last:border-0">
                           <td className="p-3">{(p as any).vendor?.name || "—"}</td>
                           <td className="p-3">{format(new Date(p.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
-                          <td className="p-3 text-right font-medium">{formatCurrency(Number(p.amount_due))}</td>
-                          <td className="p-3 text-right">{formatCurrency(Number(p.amount_paid))}</td>
+                          <td className="p-3 text-right font-medium">{formatCurrency(Number(p.amount))}</td>
+                          <td className="p-3 text-right">{p.status === "paid" ? formatCurrency(Number(p.amount)) : formatCurrency(0)}</td>
                           <td className="p-3">
                             <Badge className={`${statusColors[p.status] || ""} text-[11px] border-0`}>{statusLabels[p.status] || p.status}</Badge>
                           </td>

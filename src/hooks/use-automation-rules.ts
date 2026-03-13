@@ -29,7 +29,7 @@ export function useAutomationRules() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("automation_logs")
-        .select("*, automation_rules(name)")
+        .select("*")
         .eq("company_id", companyId!)
         .order("executed_at", { ascending: false })
         .limit(50);
@@ -50,7 +50,12 @@ export function useAutomationRules() {
     }) => {
       const { data, error } = await supabase
         .from("automation_rules")
-        .insert({ ...rule, company_id: companyId!, created_by: user!.id })
+        .insert({
+          ...rule,
+          company_id: companyId!,
+          created_by: user!.id,
+          is_active: true,
+        })
         .select()
         .single();
       if (error) throw error;

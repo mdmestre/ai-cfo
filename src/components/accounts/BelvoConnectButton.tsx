@@ -1,24 +1,24 @@
 import { Loader2, Link2, Zap } from "lucide-react";
-import { usePluggy } from "@/hooks/use-pluggy";
+import { useBelvo } from "@/hooks/use-belvo";
 import { toast } from "sonner";
 
-interface PluggyConnectButtonProps {
+interface BelvoConnectButtonProps {
   variant?: "primary" | "outline";
   className?: string;
 }
 
-export function PluggyConnectButton({ variant = "primary", className = "" }: PluggyConnectButtonProps) {
-  const { isConnecting, openPluggyConnect } = usePluggy();
+export function BelvoConnectButton({ variant = "primary", className = "" }: BelvoConnectButtonProps) {
+  const { isConnecting, openBelvoConnect } = useBelvo();
 
   const handleConnect = async () => {
     try {
-      await openPluggyConnect((itemId) => {
+      await openBelvoConnect((linkId) => {
         toast.success("Banco conectado com sucesso via Open Finance!", {
-          description: "Suas contas e transações serão sincronizadas automaticamente.",
+          description: "Suas contas e transações estarão disponíveis em breve.",
         });
       });
     } catch {
-      toast.error("Erro ao abrir o widget de conexão bancária.");
+      // toast is handled in the hook
     }
   };
 
@@ -50,7 +50,7 @@ export function PluggyConnectButton({ variant = "primary", className = "" }: Plu
       ) : (
         <Zap className="h-4 w-4" />
       )}
-      Conectar Banco via Pluggy
+      Conectar Banco via Belvo
     </button>
   );
 }

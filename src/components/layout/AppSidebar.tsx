@@ -14,11 +14,15 @@ import {
   CreditCard,
   Users,
   Receipt,
-  Wallet,
   FileText,
   Sparkles,
   Shield,
   Landmark,
+  Activity,
+  Scale,
+  Lock,
+  Calculator,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -32,9 +36,10 @@ const navSections = [
     ],
   },
   {
-    label: "Financeiro",
+    label: "Financeiro & Core",
     items: [
-      { title: "Contas", url: "/accounts", icon: Building2 },
+      { title: "Ledger Financeiro", url: "/ledger", icon: BookOpen },
+      { title: "Contas (Bancos)", url: "/accounts", icon: Building2 },
       { title: "Transações", url: "/transactions", icon: ArrowLeftRight },
       { title: "Pagamentos", url: "/payments", icon: Wallet },
       { title: "Cartões", url: "/cards", icon: CreditCard },
@@ -42,15 +47,25 @@ const navSections = [
     ],
   },
   {
-    label: "Faturamento",
+    label: "Contabilidade",
     items: [
-      { title: "Faturas", url: "/invoices", icon: FileText },
-      { title: "Despesas", url: "/expenses", icon: Receipt },
-      { title: "Ledger", url: "/ledger", icon: BookOpen },
+      { title: "Plano de Contas", url: "/chart-of-accounts", icon: FileText },
+      { title: "Lançamentos", url: "/journal-entries", icon: Receipt },
+      { title: "DRE", url: "/dre-report", icon: Activity },
+      { title: "Balanço", url: "/balance-sheet", icon: Scale },
+      { title: "Fechamento", url: "/accounting-closing", icon: Lock },
     ],
   },
   {
-    label: "Inteligência",
+    label: "Fiscal",
+    items: [
+      { title: "Faturas e Notas", url: "/invoices", icon: FileText },
+      { title: "Despesas", url: "/expenses", icon: Receipt },
+      { title: "Apuração de Impostos", url: "/taxes", icon: Calculator },
+    ],
+  },
+  {
+    label: "Inteligência & IA",
     items: [
       { title: "AI Copilot", url: "/ai-assistant", icon: Bot },
       { title: "Economias", url: "/savings", icon: Sparkles },

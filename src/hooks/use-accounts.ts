@@ -12,7 +12,8 @@ export function useAccounts() {
       const { data, error } = await supabase
         .from("accounts")
         .select("*")
-        .eq("company_id", company!.id);
+        .eq("company_id", company!.id)
+        .order("bank_name");
       if (error) throw error;
       return data;
     },
@@ -48,16 +49,13 @@ export function useAccounts() {
 
   const deleteAccount = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("accounts")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("accounts").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["accounts"] }),
   });
 
-  const totalBalance = accounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalBalance = accounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0);
 
   return { accounts, isLoading, createAccount, updateAccount, deleteAccount, totalBalance };
 }

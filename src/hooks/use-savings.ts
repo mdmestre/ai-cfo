@@ -15,7 +15,7 @@ export function useSavingsIntelligence() {
         .from("savings_insights")
         .select("*")
         .eq("company_id", companyId!)
-        .order("potential_savings", { ascending: false });
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -25,7 +25,7 @@ export function useSavingsIntelligence() {
   const runAnalysis = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("savings-analysis", {
-        body: { company_id: companyId },
+        body: { companyId },
       });
       if (error) throw error;
       return data;
@@ -41,7 +41,7 @@ export function useSavingsIntelligence() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("savings_insights")
-        .update({ status: "dismissed", resolved_at: new Date().toISOString() })
+        .update({ status: "dismissed" })
         .eq("id", id);
       if (error) throw error;
     },

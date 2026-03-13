@@ -3,9 +3,8 @@ import pool from '../../config/db';
 import { intelligenceService } from '../intelligence/intelligence-service';
 import { ledgerService } from '../ledger/service';
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+const apiKey = process.env.OPENAI_API_KEY;
+const openai = apiKey ? new OpenAI({ apiKey }) : null;
 
 export class AiService {
     async generateFinancialReply(companyId: string, userMessage: string) {
@@ -20,6 +19,10 @@ export class AiService {
             Runway Projection: ${health.factors.runway_days} days
             Factors: ${JSON.stringify(health.factors)}
         `;
+
+        if (!openai) {
+            throw new Error("Atlas AI CFO is currently unavailable (Missing API Key).");
+        }
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o",

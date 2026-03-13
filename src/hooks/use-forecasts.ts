@@ -9,14 +9,18 @@ export function useForecasts() {
     queryKey: ["forecasts", company?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("cashflow_forecasts")
+        .from("cash_flow_forecasts")
         .select("*")
         .eq("company_id", company!.id)
-        .order("forecast_date", { ascending: true });
-      if (error) throw error;
+        .order("forecast_date");
+      if (error) {
+        console.error("cash_flow_forecasts:", error.message);
+        return [];
+      }
       return data;
     },
     enabled: !!company,
+    retry: false,
   });
 
   return { forecasts, isLoading };

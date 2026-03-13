@@ -28,8 +28,8 @@ function ProfileSection() {
   const { profile } = useProfile();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [name, setName] = useState(profile?.name ?? "");
-  const [email] = useState(profile?.email ?? user?.email ?? "");
+  const [name, setName] = useState((profile as any)?.name ?? "");
+  const [email] = useState((profile as any)?.email ?? user?.email ?? "");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -38,11 +38,14 @@ function ProfileSection() {
     const { error } = await supabase
       .from("profiles")
       .update({ name })
-      .eq("user_id", user!.id);
+      .eq("id", (profile as any).id);
     setSaving(false);
-    if (error) { toast.error("Erro ao salvar perfil"); return; }
-    toast.success("Perfil atualizado com sucesso");
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["profile"] });
+    toast.success("Perfil atualizado com sucesso");
   };
 
   return (
@@ -105,11 +108,14 @@ function CompanySection() {
     const { error } = await supabase
       .from("companies")
       .update({ name })
-      .eq("id", company.id);
+      .eq("id", (company as any).id);
     setSaving(false);
-    if (error) { toast.error("Erro ao salvar empresa"); return; }
-    toast.success("Empresa atualizada com sucesso");
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["company"] });
+    toast.success("Empresa atualizada com sucesso");
   };
 
   return (
@@ -250,7 +256,10 @@ function SecuritySection() {
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPw });
     setSaving(false);
-    if (error) { toast.error("Erro ao alterar senha: " + error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Senha alterada com sucesso");
     setCurrentPw(""); setNewPw(""); setConfirmPw("");
   };

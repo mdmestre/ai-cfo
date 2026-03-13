@@ -7,11 +7,12 @@ export function useReports() {
 
   const exportCSV = async () => {
     try {
-      if (accounts.length === 0) {
-        toast.error("No accounts to export");
+      const accountIds = (accounts as any[]).map((a) => a.id);
+      if (accountIds.length === 0) {
+        toast.error("No accounts connected");
         return;
       }
-      const accountIds = accounts.map((a) => a.id);
+
       const { data: transactions, error } = await supabase
         .from("transactions")
         .select("*")
@@ -20,22 +21,31 @@ export function useReports() {
 
       if (error) throw error;
 
-      const header = "Date,Description,Category,Amount,Account ID\n";
-      const rows = (transactions || [])
-        .map((t) => `${t.date},${t.description},${t.category},${t.amount},${t.account_id}`)
-        .join("\n");
+      if (!transactions || transactions.length === 0) {
+        toast.error("No data to export");
+        return;
+      }
 
-      const blob = new Blob([header + rows], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
+      const headers = ["Data", "Descrição", "Categoria", "Valor", "Status"];
+      const rows = (transactions as any[]).map((t) => [
+        t.date,
+        t.description,
+        t.category,
+        t.amount,
+        t.status,
+      ]);
+
+      const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `atlas_report_${new Date().toISOString().split("T")[0]}.csv`);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `report-${new Date().toISOString().split("T")[0]}.csv`);
       document.body.appendChild(link);
       link.click();
-      link.remove();
-      toast.success("Report downloaded successfully");
-    } catch {
-      toast.error("Failed to generate report");
+      document.body.removeChild(link);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate report");
     }
   };
 

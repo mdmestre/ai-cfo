@@ -5,7 +5,7 @@ import { useAccounts } from "./use-accounts";
 export function useTransactions() {
   const { accounts } = useAccounts();
   const queryClient = useQueryClient();
-  const accountIds = accounts.map((a) => a.id);
+  const accountIds = (accounts as any[]).map((a) => a.id);
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["transactions", accountIds],
@@ -13,7 +13,7 @@ export function useTransactions() {
       if (accountIds.length === 0) return [];
       const { data, error } = await supabase
         .from("transactions")
-        .select("*, accounts(bank_name)")
+        .select("*")
         .in("account_id", accountIds)
         .order("date", { ascending: false });
       if (error) throw error;
@@ -40,18 +40,18 @@ export function useTransactions() {
   const currentYear = now.getFullYear();
 
   const monthlyRevenue = transactions
-    .filter((t) => {
+    .filter((t: any) => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear && Number(t.amount) > 0;
     })
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum: number, t: any) => sum + Number(t.amount), 0);
 
   const monthlyExpenses = transactions
-    .filter((t) => {
+    .filter((t: any) => {
       const d = new Date(t.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear && Number(t.amount) < 0;
     })
-    .reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0);
+    .reduce((sum: number, t: any) => sum + Math.abs(Number(t.amount)), 0);
 
   return { transactions, isLoading, createTransaction, monthlyRevenue, monthlyExpenses };
 }
