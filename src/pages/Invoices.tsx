@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, FileText, ArrowUpRight, ArrowDownLeft, Users, Building2, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const statusColors: Record<string, string> = {
@@ -68,6 +68,46 @@ const Invoices = () => {
     .reduce((s, p) => s + Number(p.amount), 0);
 
   const overdueCount = (invoices.data || []).filter((i) => i.status === "overdue").length;
+
+  const openStatuses = new Set(["open", "pending", "partial"]);
+  const today = new Date();
+
+  const customerStats = (customers.data || []).map((c) => {
+    const customerRevenue = (invoices.data || [])
+      .filter((i: any) => i.direction === "receivable" && i.customer_id === c.id)
+      .reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0);
+
+    const openAr = (receivables.data || [])
+      .filter((r: any) => r.customer_id === c.id && openStatuses.has(String(r.status || "").toLowerCase()))
+      .reduce((s: number, r: any) => s + Number(r.amount || 0), 0);
+
+    const maxLate = (receivables.data || [])
+      .filter((r: any) => r.customer_id === c.id && openStatuses.has(String(r.status || "").toLowerCase()) && r.due_date)
+      .map((r: any) => differenceInCalendarDays(today, parseISO(String(r.due_date))))
+      .filter((d: number) => d > 0)
+      .sort((a: number, b: number) => b - a)[0] || 0;
+
+    return { ...c, revenue: customerRevenue, open_ar: openAr, max_late_days: maxLate };
+  }).sort((a: any, b: any) => b.revenue - a.revenue);
+
+  const vendorStats = (vendors.data || []).map((v) => {
+    const openAp = (payables.data || [])
+      .filter((p: any) => p.vendor_id === v.id && openStatuses.has(String(p.status || "").toLowerCase()))
+      .reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+
+    const nextDue = (payables.data || [])
+      .filter((p: any) => p.vendor_id === v.id && openStatuses.has(String(p.status || "").toLowerCase()) && p.due_date)
+      .map((p: any) => parseISO(String(p.due_date)))
+      .sort((a: Date, b: Date) => a.getTime() - b.getTime())[0] || null;
+
+    const maxLate = (payables.data || [])
+      .filter((p: any) => p.vendor_id === v.id && openStatuses.has(String(p.status || "").toLowerCase()) && p.due_date)
+      .map((p: any) => differenceInCalendarDays(today, parseISO(String(p.due_date))))
+      .filter((d: number) => d > 0)
+      .sort((a: number, b: number) => b - a)[0] || 0;
+
+    return { ...v, open_ap: openAp, next_due: nextDue, max_late_days: maxLate };
+  }).sort((a: any, b: any) => b.open_ap - a.open_ap);
 
   const handleCreateInvoice = () => {
     createInvoice.mutate(
@@ -464,15 +504,24 @@ const Invoices = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                   <table className="w-full text-[13px]">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="p-3 font-medium">Cliente</th>
+                        <th className="p-3 font-medium text-right">Receita</th>
+                        <th className="p-3 font-medium text-right">A receber</th>
+                        <th className="p-3 font-medium text-right">Atraso</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      {(customers.data || []).length === 0 ? (
-                        <tr><td className="p-6 text-center text-muted-foreground">Nenhum cliente</td></tr>
+                      {customerStats.length === 0 ? (
+                        <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">Nenhum cliente</td></tr>
                       ) : (
-                        (customers.data || []).map((c) => (
+                        customerStats.map((c: any) => (
                           <tr key={c.id} className="border-b last:border-0">
                             <td className="p-3 font-medium">{c.name}</td>
-                            <td className="p-3 text-muted-foreground">{c.email || "—"}</td>
-                            <td className="p-3 text-muted-foreground">{c.document || "—"}</td>
+                            <td className="p-3 text-right font-medium">{formatCurrency(Number(c.revenue) || 0)}</td>
+                            <td className="p-3 text-right font-medium">{formatCurrency(Number(c.open_ar) || 0)}</td>
+                            <td className="p-3 text-right text-muted-foreground">{c.max_late_days > 0 ? `${c.max_late_days}d` : "—"}</td>
                           </tr>
                         ))
                       )}
@@ -488,15 +537,24 @@ const Invoices = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                   <table className="w-full text-[13px]">
+                    <thead>
+                      <tr className="border-b text-left text-muted-foreground">
+                        <th className="p-3 font-medium">Fornecedor</th>
+                        <th className="p-3 font-medium text-right">A pagar</th>
+                        <th className="p-3 font-medium text-right">Prox. venc.</th>
+                        <th className="p-3 font-medium text-right">Atraso</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      {(vendors.data || []).length === 0 ? (
-                        <tr><td className="p-6 text-center text-muted-foreground">Nenhum fornecedor</td></tr>
+                      {vendorStats.length === 0 ? (
+                        <tr><td colSpan={4} className="p-6 text-center text-muted-foreground">Nenhum fornecedor</td></tr>
                       ) : (
-                        (vendors.data || []).map((v) => (
+                        vendorStats.map((v: any) => (
                           <tr key={v.id} className="border-b last:border-0">
                             <td className="p-3 font-medium">{v.name}</td>
-                            <td className="p-3 text-muted-foreground">{v.email || "—"}</td>
-                            <td className="p-3 text-muted-foreground">{v.document || "—"}</td>
+                            <td className="p-3 text-right font-medium">{formatCurrency(Number(v.open_ap) || 0)}</td>
+                            <td className="p-3 text-right text-muted-foreground">{v.next_due ? format(v.next_due, "dd/MM", { locale: ptBR }) : "—"}</td>
+                            <td className="p-3 text-right text-muted-foreground">{v.max_late_days > 0 ? `${v.max_late_days}d` : "—"}</td>
                           </tr>
                         ))
                       )}

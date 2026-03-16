@@ -14,15 +14,15 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
   };
 
   const getScoreLabel = (s: number) => {
-    if (s >= 80) return "Excellent";
-    if (s >= 60) return "Good";
-    if (s >= 40) return "Fair";
-    return "Needs Attention";
+    if (s >= 80) return "Excelente";
+    if (s >= 60) return "Boa";
+    if (s >= 40) return "Regular";
+    return "Precisa de atencao";
   };
 
   return (
     <div className="metric-card flex flex-col items-center justify-center py-6 animate-slide-up">
-      <p className="section-label mb-5">Health Score</p>
+      <p className="section-label mb-5">Saude Financeira</p>
       <div className="relative">
         <svg width="110" height="110" viewBox="0 0 108 108">
           <circle cx="54" cy="54" r="48" fill="none" stroke="hsl(var(--border))" strokeWidth="5" />

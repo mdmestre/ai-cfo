@@ -23,6 +23,7 @@ export function useCompany() {
         .from("companies")
         .select("*")
         .eq("owner_id", user.id)
+        .limit(1)
         .maybeSingle();
 
       if (error) {
@@ -42,7 +43,7 @@ export function useCompany() {
         .from("companies")
         .insert({ name, owner_id: user!.id })
         .select()
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

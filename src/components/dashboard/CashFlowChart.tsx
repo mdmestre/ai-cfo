@@ -38,7 +38,7 @@ export function CashFlowChart() {
         historical.push({
           month: format(new Date(f.forecast_date), "MMM"),
           actual: null as unknown as number,
-          forecast: Number(f.predicted_balance),
+          forecast: Number((f as any).net_balance ?? 0),
         });
       });
     } else {

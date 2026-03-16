@@ -107,7 +107,10 @@ const Accounts = () => {
     );
   }
 
-  const connectedCount = connections.filter((c) => c.status === "connected").length;
+  const connectedCount = connections.filter((c) => {
+    const status = String(c.status || "").toLowerCase();
+    return status === "connected" || status === "active" || status === "connecting" || status === "syncing";
+  }).length;
 
   return (
     <AppLayout>
@@ -247,15 +250,20 @@ const Accounts = () => {
           {connections.length > 0 && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {connections.map((conn) => (
-                <BankConnectionCard
-                  key={conn.id}
-                  institution={conn.institution_name}
-                  provider={conn.provider}
-                  status={conn.status === "connected" ? "connected" : "not_connected"}
-                  lastSynced={conn.last_synced_at}
-                  isSyncing={syncingId === conn.id}
-                  onDisconnect={() => handleDisconnect(conn.id, conn.institution_name)}
-                  onSync={() => handleSync(conn.id)}
+                  <BankConnectionCard
+                    key={conn.id}
+                    institution={conn.institution_name}
+                    provider={conn.provider}
+                    status={(() => {
+                      const status = String(conn.status || "").toLowerCase();
+                      if (status === "needs_attention") return "needs_attention";
+                      if (status === "connecting" || status === "syncing") return "connecting";
+                      return status === "connected" || status === "active" ? "connected" : "not_connected";
+                    })()}
+                    lastSynced={conn.last_synced_at}
+                    isSyncing={syncingId === conn.id}
+                    onDisconnect={() => handleDisconnect(conn.id, conn.institution_name)}
+                    onSync={() => handleSync(conn.id)}
                 />
               ))}
             </div>

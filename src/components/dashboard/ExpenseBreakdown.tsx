@@ -1,16 +1,11 @@
 import { PieChart } from "lucide-react";
+import { formatBRLCompact } from "@/lib/format";
 
 interface Expense {
   amount: number;
   expense_categories?: { name: string; code: string } | null;
   status: string;
 }
-
-const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${value.toFixed(0)}`;
-};
 
 const COLORS = [
   "bg-primary",
@@ -24,7 +19,7 @@ const COLORS = [
 export function ExpenseBreakdown({ expenses }: { expenses: Expense[] }) {
   // Group by category
   const byCategory = expenses.reduce<Record<string, number>>((acc, e) => {
-    const cat = e.expense_categories?.name || "Uncategorized";
+    const cat = e.expense_categories?.name || "Sem categoria";
     acc[cat] = (acc[cat] || 0) + Number(e.amount);
     return acc;
   }, {});
@@ -39,7 +34,7 @@ export function ExpenseBreakdown({ expenses }: { expenses: Expense[] }) {
     <div className="metric-card animate-slide-up">
       <div className="flex items-center gap-2 mb-4">
         <PieChart className="h-3.5 w-3.5 text-muted-foreground" />
-        <p className="text-[13px] font-medium text-muted-foreground">Expense Breakdown</p>
+        <p className="text-[13px] font-medium text-muted-foreground">Despesas por categoria</p>
       </div>
       {sorted.length > 0 ? (
         <>
@@ -61,7 +56,7 @@ export function ExpenseBreakdown({ expenses }: { expenses: Expense[] }) {
                   <span className="text-[12px] text-muted-foreground">{cat}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[12px] font-medium text-foreground">{formatCurrency(amount)}</span>
+                  <span className="text-[12px] font-medium text-foreground">{formatBRLCompact(amount)}</span>
                   <span className="text-[11px] text-muted-foreground w-8 text-right">
                     {Math.round((amount / total) * 100)}%
                   </span>
@@ -71,7 +66,7 @@ export function ExpenseBreakdown({ expenses }: { expenses: Expense[] }) {
           </div>
         </>
       ) : (
-        <p className="text-[13px] text-muted-foreground py-8 text-center">No expenses recorded yet.</p>
+        <p className="text-[13px] text-muted-foreground py-8 text-center">Nenhuma despesa registrada ainda.</p>
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 -- =========================================
--- MISSING TABLES - Run in Supabase SQL Editor
--- Run AFTER supabase_restore_schema.sql
+-- MISSING TABLES & POLICIES
 -- =========================================
 
 -- BANK CONNECTIONS
@@ -18,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.bank_connections (
 );
 
 ALTER TABLE public.bank_connections ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "bank_connections_all" ON public.bank_connections;
 CREATE POLICY "bank_connections_all" ON public.bank_connections
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
@@ -51,9 +51,11 @@ CREATE TABLE IF NOT EXISTS public.card_transactions (
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.card_transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "cards_all" ON public.cards;
 CREATE POLICY "cards_all" ON public.cards
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "card_transactions_all" ON public.card_transactions;
 CREATE POLICY "card_transactions_all" ON public.card_transactions
   USING (card_id IN (SELECT id FROM public.cards WHERE company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid())));
 
@@ -71,10 +73,11 @@ CREATE TABLE IF NOT EXISTS public.cash_flow_forecasts (
 );
 
 ALTER TABLE public.cash_flow_forecasts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "cash_flow_forecasts_all" ON public.cash_flow_forecasts;
 CREATE POLICY "cash_flow_forecasts_all" ON public.cash_flow_forecasts
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
--- PAYABLES (standalone, separate from invoices)
+-- PAYABLES
 CREATE TABLE IF NOT EXISTS public.payables (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
@@ -88,10 +91,11 @@ CREATE TABLE IF NOT EXISTS public.payables (
 );
 
 ALTER TABLE public.payables ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "payables_all" ON public.payables;
 CREATE POLICY "payables_all" ON public.payables
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
--- RECEIVABLES (standalone, separate from invoices)
+-- RECEIVABLES
 CREATE TABLE IF NOT EXISTS public.receivables (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
@@ -105,6 +109,7 @@ CREATE TABLE IF NOT EXISTS public.receivables (
 );
 
 ALTER TABLE public.receivables ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "receivables_all" ON public.receivables;
 CREATE POLICY "receivables_all" ON public.receivables
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
@@ -141,12 +146,15 @@ ALTER TABLE public.ledger_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ledger_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ledger_entry_lines ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "ledger_accounts_all" ON public.ledger_accounts;
 CREATE POLICY "ledger_accounts_all" ON public.ledger_accounts
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "ledger_entries_all" ON public.ledger_entries;
 CREATE POLICY "ledger_entries_all" ON public.ledger_entries
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "ledger_entry_lines_all" ON public.ledger_entry_lines;
 CREATE POLICY "ledger_entry_lines_all" ON public.ledger_entry_lines
   USING (ledger_entry_id IN (
     SELECT id FROM public.ledger_entries WHERE company_id IN (
@@ -197,16 +205,19 @@ ALTER TABLE public.treasury_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.yield_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.yield_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "treasury_positions_all" ON public.treasury_positions;
 CREATE POLICY "treasury_positions_all" ON public.treasury_positions
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "yield_products_all" ON public.yield_products;
 CREATE POLICY "yield_products_all" ON public.yield_products
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
+DROP POLICY IF EXISTS "yield_events_all" ON public.yield_events;
 CREATE POLICY "yield_events_all" ON public.yield_events
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
--- RISK EVENTS (separate from risk_scores)
+-- RISK EVENTS
 CREATE TABLE IF NOT EXISTS public.risk_events (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id uuid NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
@@ -218,6 +229,7 @@ CREATE TABLE IF NOT EXISTS public.risk_events (
 );
 
 ALTER TABLE public.risk_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "risk_events_all" ON public.risk_events;
 CREATE POLICY "risk_events_all" ON public.risk_events
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
@@ -236,6 +248,7 @@ CREATE TABLE IF NOT EXISTS public.automations (
 );
 
 ALTER TABLE public.automations ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "automations_all" ON public.automations;
 CREATE POLICY "automations_all" ON public.automations
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 
@@ -252,6 +265,7 @@ CREATE TABLE IF NOT EXISTS public.alerts (
 );
 
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "alerts_all" ON public.alerts;
 CREATE POLICY "alerts_all" ON public.alerts
   USING (company_id IN (SELECT id FROM public.companies WHERE owner_id = auth.uid()));
 

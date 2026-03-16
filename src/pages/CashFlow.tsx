@@ -1,564 +1,362 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine, Line,
-} from "recharts";
-import { ArrowUpRight, ArrowDownRight, Calendar, Play, RotateCcw, TrendingDown, Users, DollarSign, AlertTriangle, Loader2 } from "lucide-react";
-import { useState, useMemo } from "react";
 import { Slider } from "@/components/ui/slider";
+import { useCashForecast90d, type CashForecastPoint } from "@/hooks/use-cash-forecast-90d";
 import { useTransactions } from "@/hooks/use-transactions";
-import { useAccounts } from "@/hooks/use-accounts";
-import { useForecasts } from "@/hooks/use-forecasts";
-import { useWallets } from "@/hooks/use-wallets";
-import { format, subMonths, addDays } from "date-fns";
+import { formatBRLCompact, formatBRLNoCents } from "@/lib/format";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { AlertTriangle, RotateCcw, TrendingDown, Users, Wallet } from "lucide-react";
+import { useMemo, useState } from "react";
 
-const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2)}M`;
-  if (Math.abs(value) >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}K`;
-  return `R$ ${value.toFixed(0)}`;
-};
-
-interface Scenario {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-  color: string;
-  revenueChange: number;
-  expenseChange: number;
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
 }
 
-const presetScenarios: Scenario[] = [
-  {
-    id: "revenue-drop",
-    name: "Receita cai 20%",
-    icon: <TrendingDown className="h-4 w-4" />,
-    description: "E se perdermos um grande cliente ou o mercado retrair?",
-    color: "hsl(0 72% 51%)",
-    revenueChange: -20,
-    expenseChange: 0,
-  },
-  {
-    id: "hire-3",
-    name: "Contratar 3 funcionários",
-    icon: <Users className="h-4 w-4" />,
-    description: "Adição de 3 engenheiros com salário médio + encargos",
-    color: "hsl(220 70% 50%)",
-    revenueChange: 0,
-    expenseChange: 15,
-  },
-  {
-    id: "growth",
-    name: "Receita cresce 30%",
-    icon: <DollarSign className="h-4 w-4" />,
-    description: "Cenário otimista com lançamento de produto",
-    color: "hsl(160 84% 39%)",
-    revenueChange: 30,
-    expenseChange: 10,
-  },
-];
+function inferDailyNet(points: CashForecastPoint[]) {
+  const p0 = points[0];
+  const p1 = points[1];
+  if (!p0 || !p1) return 0;
+  // balance(i) = balance(i-1) + dailyNet + inflow(i) - outflow(i)
+  return p1.balance - p0.balance - p1.inflow + p1.outflow;
+}
 
-const CashFlow = () => {
-  const { transactions, monthlyRevenue, monthlyExpenses, isLoading: txLoading } = useTransactions();
-  const { totalBalance, isLoading: accLoading } = useAccounts();
-  const { totalWalletBalance } = useWallets();
-  const { forecasts } = useForecasts();
+function computeScenarioPoints(args: {
+  base: CashForecastPoint[];
+  dailyNetBase: number;
+  dailyNetDelta: number;
+  oneTimeOutflow: number;
+}) {
+  const { base, dailyNetBase, dailyNetDelta, oneTimeOutflow } = args;
+  if (base.length === 0) return [];
 
-  const [selectedPeriod, setSelectedPeriod] = useState("3M");
-  const [activeScenarios, setActiveScenarios] = useState<string[]>([]);
-  const [customRevenue, setCustomRevenue] = useState(0);
-  const [customExpense, setCustomExpense] = useState(0);
-  const [showCustom, setShowCustom] = useState(false);
+  let balance = base[0].balance;
+  const series = base.map((p, i) => {
+    if (i === 0) return { ...p, balance };
+    const oneTime = i === 1 ? oneTimeOutflow : 0;
+    balance = balance + dailyNetBase + dailyNetDelta + p.inflow - p.outflow - oneTime;
+    return { ...p, balance };
+  });
 
-  const currentBalance = totalBalance + totalWalletBalance;
-  const monthlyBurn = monthlyExpenses || 1;
+  const firstNeg = series.findIndex((p) => p.balance < 0);
+  const daysUntilNegative = firstNeg === -1 ? null : firstNeg;
 
-  // Build historical data from real transactions (last 6 months)
-  const historicalData = useMemo(() => {
-    if (transactions.length === 0) return [];
-    const points: { date: string; actual: number }[] = [];
-    let runningBalance = currentBalance;
+  return { points: series, daysUntilNegative };
+}
 
-    // Group transactions by month, compute balance going backwards
-    const months = Array.from({ length: 6 }, (_, i) => subMonths(new Date(), i));
-    const monthlyNet: number[] = months.map((m) => {
-      return transactions
-        .filter((t) => {
-          const td = new Date(t.date);
-          return td.getMonth() === m.getMonth() && td.getFullYear() === m.getFullYear();
-        })
-        .reduce((s, t) => s + Number(t.amount), 0);
-    });
+export default function CashFlow() {
+  const { points, milestones, isLoading } = useCashForecast90d();
+  const { monthlyRevenue, monthlyExpenses } = useTransactions();
 
-    // Current month is index 0
-    let bal = currentBalance;
-    const balances: { date: string; balance: number }[] = [];
-    for (let i = 0; i < months.length; i++) {
-      balances.unshift({ date: format(months[i], "MMM yy"), balance: Math.round(bal) });
-      if (i < months.length - 1) {
-        bal -= monthlyNet[i]; // Remove current month net to get previous month end
-      }
-    }
+  const [revPct, setRevPct] = useState(0);
+  const [expPct, setExpPct] = useState(0);
+  const [extraMonthly, setExtraMonthly] = useState(0);
+  const [oneTime, setOneTime] = useState(0);
 
-    return balances.map((b) => ({ date: b.date, actual: b.balance }));
-  }, [transactions, currentBalance]);
+  const dailyNetBase = useMemo(() => inferDailyNet(points), [points]);
 
-  // Build forecast from real forecasts or project from current data
-  const baselineForecast = useMemo(() => {
-    if (forecasts.length > 0) {
-      return forecasts.map((f) => ({
-        date: format(new Date(f.forecast_date), "MMM dd"),
-        baseline: Number(f.predicted_balance),
-      }));
-    }
-    // Generate simple projection based on current net
-    const monthlyNet = monthlyRevenue - monthlyExpenses;
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = addDays(new Date(), (i + 1) * 15);
-      return {
-        date: format(d, "MMM dd"),
-        baseline: Math.round(currentBalance + monthlyNet * ((i + 1) * 0.5)),
-      };
-    });
-  }, [forecasts, currentBalance, monthlyRevenue, monthlyExpenses]);
+  const dailyNetDelta = useMemo(() => {
+    // Delta is relative to baseline. Convert % impacts from monthly to daily (approx).
+    const revDelta = (monthlyRevenue * (revPct / 100)) / 30;
+    const expDelta = (-monthlyExpenses * (expPct / 100)) / 30;
+    const extraDelta = (-extraMonthly) / 30;
+    return revDelta + expDelta + extraDelta;
+  }, [expPct, extraMonthly, monthlyExpenses, monthlyRevenue, revPct]);
 
-  const toggleScenario = (id: string) => {
-    setActiveScenarios((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
-
-  const applyScenario = (baseline: number, index: number, revenueChange: number, expenseChange: number) => {
-    const rev = monthlyRevenue || 1;
-    const exp = monthlyExpenses || 1;
-    const adjustedRevenue = rev * (1 + revenueChange / 100);
-    const adjustedExpense = exp * (1 + expenseChange / 100);
-    const netChange = (adjustedRevenue - adjustedExpense) - (rev - exp);
-    return Math.round(baseline + netChange * (index * 0.5));
-  };
+  const scenario = useMemo(() => {
+    const active = revPct !== 0 || expPct !== 0 || extraMonthly !== 0 || oneTime !== 0;
+    if (!active) return null;
+    return computeScenarioPoints({ base: points, dailyNetBase, dailyNetDelta, oneTimeOutflow: oneTime });
+  }, [dailyNetBase, dailyNetDelta, expPct, extraMonthly, oneTime, points, revPct]);
 
   const chartData = useMemo(() => {
-    const combined = [
-      ...historicalData.map((d) => ({ date: d.date, actual: d.actual })),
-      ...baselineForecast.map((d, i) => {
-        const point: Record<string, unknown> = { date: d.date, baseline: d.baseline };
+    return points.map((p, i) => ({
+      label: p.label,
+      baseline: p.balance,
+      scenario: scenario?.points?.[i]?.balance ?? null,
+    }));
+  }, [points, scenario?.points]);
 
-        activeScenarios.forEach((scenarioId) => {
-          const scenario = presetScenarios.find((s) => s.id === scenarioId);
-          if (scenario) {
-            point[scenarioId] = applyScenario(d.baseline, i, scenario.revenueChange, scenario.expenseChange);
-          }
-        });
+  const baseline90 = milestones.d90?.balance ?? 0;
+  const scenario90 = scenario?.points?.[90]?.balance ?? null;
+  const diff90 = scenario90 === null ? null : scenario90 - baseline90;
 
-        if (showCustom && (customRevenue !== 0 || customExpense !== 0)) {
-          point["custom"] = applyScenario(d.baseline, i, customRevenue, customExpense);
-        }
-
-        return point;
-      }),
-    ];
-    return combined;
-  }, [historicalData, baselineForecast, activeScenarios, customRevenue, customExpense, showCustom]);
-
-  const endingCash = useMemo(() => {
-    const last = baselineForecast[baselineForecast.length - 1];
-    if (!last) return { baseline: currentBalance };
-    const results: Record<string, number> = { baseline: last.baseline };
-
-    activeScenarios.forEach((scenarioId) => {
-      const scenario = presetScenarios.find((s) => s.id === scenarioId);
-      if (scenario) {
-        results[scenarioId] = applyScenario(last.baseline, baselineForecast.length - 1, scenario.revenueChange, scenario.expenseChange);
-      }
-    });
-
-    if (showCustom && (customRevenue !== 0 || customExpense !== 0)) {
-      results["custom"] = applyScenario(last.baseline, baselineForecast.length - 1, customRevenue, customExpense);
-    }
-
-    return results;
-  }, [baselineForecast, activeScenarios, customRevenue, customExpense, showCustom, currentBalance]);
-
-  const runwayMonths = monthlyBurn > 0 ? currentBalance / monthlyBurn : Infinity;
-  const lowestProjection = Math.min(...Object.values(endingCash));
-  const criticalThreshold = monthlyBurn * 2;
-  const daysUntilCritical = lowestProjection < criticalThreshold ? Math.round((lowestProjection / currentBalance) * 90) : null;
-
-  const resetAll = () => {
-    setActiveScenarios([]);
-    setCustomRevenue(0);
-    setCustomExpense(0);
-    setShowCustom(false);
+  const preset = {
+    revenueDrop20: () => {
+      setRevPct(-20);
+      setExpPct(0);
+      setExtraMonthly(0);
+      setOneTime(0);
+    },
+    hire2: () => {
+      setRevPct(0);
+      setExpPct(0);
+      setExtraMonthly(14200);
+      setOneTime(0);
+    },
+    marketing10: () => {
+      setRevPct(0);
+      setExpPct(0);
+      setExtraMonthly(10000);
+      setOneTime(0);
+    },
   };
-
-  const isLoading = txLoading || accLoading;
-
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
-      <div className="max-w-[1200px] space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className="max-w-[1120px] space-y-6 animate-fade-in">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Previsão de Fluxo de Caixa</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">Projeção de 90 dias com simulações de cenário</p>
-          </div>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-          <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Saldo Atual</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{formatCurrency(currentBalance)}</p>
-          </div>
-          <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Projetado (90d)</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{formatCurrency(endingCash.baseline)}</p>
-            <div className="mt-2 flex items-center gap-1">
-              {endingCash.baseline >= currentBalance ? (
-                <ArrowUpRight className="h-3.5 w-3.5 text-success" />
-              ) : (
-                <ArrowDownRight className="h-3.5 w-3.5 text-destructive" />
-              )}
-              <span className={`text-[13px] font-medium ${endingCash.baseline >= currentBalance ? "text-success" : "text-destructive"}`}>
-                {currentBalance > 0 ? `${(((endingCash.baseline - currentBalance) / currentBalance) * 100).toFixed(1)}%` : "—"}
-              </span>
-            </div>
-          </div>
-          <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Despesas Mensais</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{formatCurrency(monthlyExpenses)}</p>
-          </div>
-          <div className="metric-card">
-            <p className="text-[13px] font-medium text-muted-foreground">Runway</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              {runwayMonths === Infinity ? "∞" : `${runwayMonths.toFixed(1)}`} {runwayMonths !== Infinity && "meses"}
+            <h1 className="text-xl font-semibold text-foreground">Previsao de Caixa</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              Projecao de 90 dias com base em transacoes, contas a pagar/receber e impostos.
             </p>
           </div>
+
+          <button
+            onClick={() => {
+              setRevPct(0);
+              setExpPct(0);
+              setExtraMonthly(0);
+              setOneTime(0);
+            }}
+            className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary/40 transition-colors"
+            title="Resetar simulacao"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Resetar
+          </button>
         </div>
 
-        {/* Warning banner */}
-        {daysUntilCritical && daysUntilCritical > 0 && (
-          <div className="flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
-            <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
-            <p className="text-[13px] text-destructive font-medium">
-              Alerta: No pior cenário ativo, o caixa pode atingir níveis críticos em ~{daysUntilCritical} dias.
-            </p>
-          </div>
-        )}
-
-        {/* Forecast Chart */}
-        <div className="metric-card">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-[13px] font-medium text-muted-foreground">Previsão de Fluxo de Caixa — 90 dias</p>
-              <p className="text-xxs text-muted-foreground mt-0.5">Real → Baseline → Cenários</p>
-            </div>
-            <div className="flex gap-4 text-xxs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-foreground" />
-                Real
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-4 rounded bg-foreground opacity-40" style={{ borderTop: '2px dashed' }} />
-                Baseline
-              </span>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="inline-flex items-center gap-2 text-muted-foreground">
+              <RotateCcw className="h-4 w-4 animate-spin" />
+              Carregando...
             </div>
           </div>
-          {chartData.length > 0 ? (
-            <div className="h-[380px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.06} />
-                      <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="baselineGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.06} />
-                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCurrency} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
-                    formatter={(value: number, name: string) => {
-                      const labels: Record<string, string> = {
-                        actual: "Real",
-                        baseline: "Baseline",
-                        "revenue-drop": "Receita -20%",
-                        "hire-3": "Contratar 3",
-                        growth: "Receita +30%",
-                        custom: "Cenário customizado",
-                      };
-                      return [formatCurrency(value), labels[name] || name];
-                    }}
-                  />
-                  {criticalThreshold > 0 && (
-                    <ReferenceLine y={criticalThreshold} stroke="hsl(var(--destructive))" strokeDasharray="6 4" strokeOpacity={0.4} />
-                  )}
-                  <Area type="monotone" dataKey="actual" stroke="hsl(var(--foreground))" strokeWidth={2} fill="url(#actualGrad)" connectNulls={false} />
-                  <Area type="monotone" dataKey="baseline" stroke="hsl(var(--foreground))" strokeWidth={1.5} strokeDasharray="6 4" fill="url(#baselineGrad)" connectNulls={false} />
-
-                  {activeScenarios.map((scenarioId) => {
-                    const scenario = presetScenarios.find((s) => s.id === scenarioId);
-                    return scenario ? (
-                      <Line key={scenarioId} type="monotone" dataKey={scenarioId} stroke={scenario.color} strokeWidth={2} dot={false} connectNulls={false} />
-                    ) : null;
-                  })}
-
-                  {showCustom && (customRevenue !== 0 || customExpense !== 0) && (
-                    <Line type="monotone" dataKey="custom" stroke="hsl(270 70% 55%)" strokeWidth={2} strokeDasharray="4 2" dot={false} connectNulls={false} />
-                  )}
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <p className="text-[13px] text-muted-foreground py-12 text-center">Sem dados de transações para projetar. Conecte um banco ou adicione transações.</p>
-          )}
-        </div>
-
-        {/* Scenario Simulations */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="metric-card">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[15px] font-semibold text-foreground">Simulação de Cenários</p>
-                <p className="text-xxs text-muted-foreground mt-0.5">Ative cenários para ver o impacto no fluxo de caixa</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+              <div className="metric-card">
+                <p className="section-label">Caixa hoje</p>
+                <p className="mt-2 text-[22px] font-bold text-foreground tabular-nums">
+                  {formatBRLNoCents(milestones.today.balance)}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {milestones.daysUntilNegative === null ? "Sem previsao negativa" : `Negativo em ${milestones.daysUntilNegative} dias`}
+                </p>
               </div>
-              <button onClick={resetAll} className="flex items-center gap-1.5 text-xxs text-muted-foreground hover:text-foreground transition-colors">
-                <RotateCcw className="h-3 w-3" />
-                Resetar
-              </button>
+              <div className="metric-card">
+                <p className="section-label">30 dias</p>
+                <p className={`mt-2 text-[22px] font-bold tabular-nums ${milestones.d30.balance < 0 ? "text-destructive" : "text-foreground"}`}>
+                  {formatBRLNoCents(milestones.d30.balance)}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Saldo projetado</p>
+              </div>
+              <div className="metric-card">
+                <p className="section-label">60 dias</p>
+                <p className={`mt-2 text-[22px] font-bold tabular-nums ${milestones.d60.balance < 0 ? "text-destructive" : "text-foreground"}`}>
+                  {formatBRLNoCents(milestones.d60.balance)}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Saldo projetado</p>
+              </div>
+              <div className="metric-card">
+                <p className="section-label">90 dias</p>
+                <p className={`mt-2 text-[22px] font-bold tabular-nums ${milestones.d90.balance < 0 ? "text-destructive" : "text-foreground"}`}>
+                  {formatBRLNoCents(milestones.d90.balance)}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Saldo projetado</p>
+              </div>
             </div>
-            <div className="space-y-3">
-              {presetScenarios.map((scenario) => {
-                const isActive = activeScenarios.includes(scenario.id);
-                const projected = endingCash[scenario.id];
-                return (
-                  <button
-                    key={scenario.id}
-                    onClick={() => toggleScenario(scenario.id)}
-                    className={`w-full rounded-lg border p-3.5 text-left transition-all ${
-                      isActive
-                        ? "border-foreground/20 bg-secondary/50"
-                        : "border-border hover:border-foreground/10 hover:bg-secondary/30"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-md"
-                          style={{ backgroundColor: `${scenario.color}15`, color: scenario.color }}
-                        >
-                          {scenario.icon}
-                        </div>
-                        <div>
-                          <p className="text-[13px] font-medium text-foreground">{scenario.name}</p>
-                          <p className="text-xxs text-muted-foreground mt-0.5">{scenario.description}</p>
-                        </div>
+
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+              <div className="lg:col-span-2 metric-card">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="min-w-0">
+                    <p className="section-label">Previsao (90 dias)</p>
+                    {milestones.daysUntilNegative !== null && (
+                      <div className="mt-2 flex items-center gap-2 text-[12px] text-destructive">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        <span className="font-semibold">Caixa negativo em {milestones.daysUntilNegative} dias.</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {isActive && projected && (
-                          <span className="text-xxs font-medium" style={{ color: scenario.color }}>
-                            {formatCurrency(projected)}
-                          </span>
-                        )}
-                        <div className={`h-4 w-4 rounded-full border-2 transition-colors ${
-                          isActive ? "border-foreground bg-foreground" : "border-border"
-                        }`}>
-                          {isActive && (
-                            <svg viewBox="0 0 16 16" fill="none" className="h-full w-full">
-                              <path d="M5 8l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </div>
+                    )}
+                    {scenario?.daysUntilNegative !== null && (
+                      <div className="mt-2 flex items-center gap-2 text-[12px] text-warning">
+                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                        <span className="font-semibold">
+                          No cenario: caixa negativo em {scenario?.daysUntilNegative} dias.
+                        </span>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    )}
+                  </div>
 
-          {/* Custom Scenario Builder */}
-          <div className="metric-card">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <p className="text-[15px] font-semibold text-foreground">Cenário Customizado</p>
-                <p className="text-xxs text-muted-foreground mt-0.5">Ajuste receita e despesas para modelar qualquer situação</p>
-              </div>
-              <button
-                onClick={() => setShowCustom(!showCustom)}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xxs font-medium transition-colors ${
-                  showCustom ? "bg-foreground text-background" : "border border-border text-foreground hover:bg-secondary"
-                }`}
-              >
-                <Play className="h-3 w-3" />
-                {showCustom ? "Ativo" : "Simular"}
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-[13px] font-medium text-foreground">Variação de Receita</p>
-                  <span className={`text-[13px] font-semibold tabular-nums ${customRevenue >= 0 ? "text-success" : "text-destructive"}`}>
-                    {customRevenue >= 0 ? "+" : ""}{customRevenue}%
-                  </span>
-                </div>
-                <Slider
-                  value={[customRevenue]}
-                  onValueChange={([val]) => setCustomRevenue(val)}
-                  min={-50}
-                  max={50}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
-                  <span>-50%</span>
-                  <span>0%</span>
-                  <span>+50%</span>
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-[13px] font-medium text-foreground">Variação de Despesas</p>
-                  <span className={`text-[13px] font-semibold tabular-nums ${customExpense <= 0 ? "text-success" : "text-destructive"}`}>
-                    {customExpense >= 0 ? "+" : ""}{customExpense}%
-                  </span>
-                </div>
-                <Slider
-                  value={[customExpense]}
-                  onValueChange={([val]) => setCustomExpense(val)}
-                  min={-30}
-                  max={50}
-                  step={5}
-                  className="w-full"
-                />
-                <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
-                  <span>-30%</span>
-                  <span>0%</span>
-                  <span>+50%</span>
-                </div>
-              </div>
-
-              {showCustom && (customRevenue !== 0 || customExpense !== 0) && endingCash["custom"] && (
-                <div className="rounded-lg border border-border bg-secondary/30 p-3.5">
-                  <p className="text-xxs font-medium text-muted-foreground mb-2">Impacto Projetado (90d)</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xxs text-muted-foreground">Caixa Final</p>
-                      <p className="text-lg font-semibold text-foreground">{formatCurrency(endingCash["custom"])}</p>
-                    </div>
-                    <div>
-                      <p className="text-xxs text-muted-foreground">vs Baseline</p>
-                      <p className={`text-lg font-semibold ${endingCash["custom"] >= endingCash.baseline ? "text-success" : "text-destructive"}`}>
-                        {endingCash["custom"] >= endingCash.baseline ? "+" : ""}
-                        {formatCurrency(endingCash["custom"] - endingCash.baseline)}
+                  {diff90 !== null && (
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
+                        Impacto (90d)
+                      </p>
+                      <p className={`mt-1 text-[16px] font-bold tabular-nums ${diff90 >= 0 ? "text-success" : "text-destructive"}`}>
+                        {diff90 >= 0 ? "+" : ""}
+                        {formatBRLNoCents(diff90)}
                       </p>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Scenario Comparison Table */}
-        {(activeScenarios.length > 0 || (showCustom && (customRevenue !== 0 || customExpense !== 0))) && (
-          <div className="metric-card">
-            <p className="text-[15px] font-semibold text-foreground mb-4">Comparação de Cenários</p>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="pb-3 text-left text-xxs font-medium text-muted-foreground">Cenário</th>
-                    <th className="pb-3 text-right text-xxs font-medium text-muted-foreground">Caixa Final</th>
-                    <th className="pb-3 text-right text-xxs font-medium text-muted-foreground">vs Baseline</th>
-                    <th className="pb-3 text-right text-xxs font-medium text-muted-foreground">Runway</th>
-                    <th className="pb-3 text-right text-xxs font-medium text-muted-foreground">Risco</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border/50">
-                    <td className="py-3 text-[13px] font-medium text-foreground">Baseline</td>
-                    <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{formatCurrency(endingCash.baseline)}</td>
-                    <td className="py-3 text-right text-[13px] text-muted-foreground">—</td>
-                    <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{runwayMonths === Infinity ? "∞" : `${runwayMonths.toFixed(1)} m`}</td>
-                    <td className="py-3 text-right">
-                      <span className="rounded-full bg-success/10 px-2 py-0.5 text-xxs font-medium text-success">Baixo</span>
-                    </td>
-                  </tr>
-                  {activeScenarios.map((scenarioId) => {
-                    const scenario = presetScenarios.find((s) => s.id === scenarioId);
-                    if (!scenario || !endingCash[scenarioId]) return null;
-                    const diff = endingCash[scenarioId] - endingCash.baseline;
-                    const runway = monthlyBurn > 0 ? endingCash[scenarioId] / monthlyBurn : Infinity;
-                    const risk = runway < 4 ? "Alto" : runway < 6 ? "Médio" : "Baixo";
-                    const riskColor = risk === "Alto" ? "text-destructive bg-destructive/10" : risk === "Médio" ? "text-warning bg-warning/10" : "text-success bg-success/10";
-                    return (
-                      <tr key={scenarioId} className="border-b border-border/50">
-                        <td className="py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: scenario.color }} />
-                            <span className="text-[13px] font-medium text-foreground">{scenario.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{formatCurrency(endingCash[scenarioId])}</td>
-                        <td className={`py-3 text-right text-[13px] tabular-nums font-medium ${diff >= 0 ? "text-success" : "text-destructive"}`}>
-                          {diff >= 0 ? "+" : ""}{formatCurrency(diff)}
-                        </td>
-                        <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{runway === Infinity ? "∞" : `${runway.toFixed(1)} m`}</td>
-                        <td className="py-3 text-right">
-                          <span className={`rounded-full px-2 py-0.5 text-xxs font-medium ${riskColor}`}>{risk}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {showCustom && (customRevenue !== 0 || customExpense !== 0) && endingCash["custom"] && (
-                    <tr className="border-b border-border/50">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "hsl(270 70% 55%)" }} />
-                          <span className="text-[13px] font-medium text-foreground">Custom (Rec {customRevenue >= 0 ? "+" : ""}{customRevenue}%, Desp {customExpense >= 0 ? "+" : ""}{customExpense}%)</span>
-                        </div>
-                      </td>
-                      <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{formatCurrency(endingCash["custom"])}</td>
-                      <td className={`py-3 text-right text-[13px] tabular-nums font-medium ${(endingCash["custom"] - endingCash.baseline) >= 0 ? "text-success" : "text-destructive"}`}>
-                        {(endingCash["custom"] - endingCash.baseline) >= 0 ? "+" : ""}{formatCurrency(endingCash["custom"] - endingCash.baseline)}
-                      </td>
-                      <td className="py-3 text-right text-[13px] tabular-nums text-foreground">{monthlyBurn > 0 ? `${(endingCash["custom"] / monthlyBurn).toFixed(1)} m` : "∞"}</td>
-                      <td className="py-3 text-right">
-                        {(() => {
-                          const r = monthlyBurn > 0 ? endingCash["custom"] / monthlyBurn : Infinity;
-                          const risk = r < 4 ? "Alto" : r < 6 ? "Médio" : "Baixo";
-                          const c = risk === "Alto" ? "text-destructive bg-destructive/10" : risk === "Médio" ? "text-warning bg-warning/10" : "text-success bg-success/10";
-                          return <span className={`rounded-full px-2 py-0.5 text-xxs font-medium ${c}`}>{risk}</span>;
-                        })()}
-                      </td>
-                    </tr>
                   )}
-                </tbody>
-              </table>
+                </div>
+
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="cashBaselineGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.08} />
+                          <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        axisLine={false}
+                        tickLine={false}
+                        interval="preserveStartEnd"
+                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                        tickFormatter={(v: number) => formatBRLCompact(v)}
+                      />
+                      <Tooltip formatter={(value: number) => [formatBRLNoCents(value), "Saldo"]} />
+                      <Area
+                        type="monotone"
+                        dataKey="baseline"
+                        stroke="hsl(var(--foreground))"
+                        strokeWidth={2}
+                        fill="url(#cashBaselineGrad)"
+                        name="Baseline"
+                      />
+                      {scenario ? (
+                        <Line
+                          type="monotone"
+                          dataKey="scenario"
+                          stroke="hsl(var(--accent))"
+                          strokeWidth={2}
+                          dot={false}
+                          name="Cenario"
+                        />
+                      ) : null}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="metric-card">
+                <p className="section-label mb-3">Simulacao</p>
+
+                <div className="grid grid-cols-1 gap-2 mb-4">
+                  <button
+                    onClick={preset.revenueDrop20}
+                    className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary/40 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                      Receita -20%
+                    </span>
+                    <span className="text-muted-foreground">1 clique</span>
+                  </button>
+                  <button
+                    onClick={preset.hire2}
+                    className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary/40 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      Contratar +2
+                    </span>
+                    <span className="text-muted-foreground">R$ 14.200/mes</span>
+                  </button>
+                  <button
+                    onClick={preset.marketing10}
+                    className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-[12px] font-semibold text-foreground hover:bg-secondary/40 transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-muted-foreground" />
+                      Marketing
+                    </span>
+                    <span className="text-muted-foreground">R$ 10.000/mes</span>
+                  </button>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[12px] font-semibold text-foreground">Variacao de receita</p>
+                      <span className="text-[12px] font-semibold text-foreground tabular-nums">{revPct}%</span>
+                    </div>
+                    <Slider value={[revPct]} onValueChange={([v]) => setRevPct(v)} min={-30} max={50} step={5} />
+                    <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
+                      <span>-30%</span>
+                      <span>0%</span>
+                      <span>+50%</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[12px] font-semibold text-foreground">Variacao de despesas</p>
+                      <span className="text-[12px] font-semibold text-foreground tabular-nums">{expPct}%</span>
+                    </div>
+                    <Slider value={[expPct]} onValueChange={([v]) => setExpPct(v)} min={-30} max={50} step={5} />
+                    <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
+                      <span>-30%</span>
+                      <span>0%</span>
+                      <span>+50%</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[12px] font-semibold text-foreground">Custo extra (R$/mes)</p>
+                      <span className="text-[12px] font-semibold text-foreground tabular-nums">{formatBRLNoCents(extraMonthly)}</span>
+                    </div>
+                    <Slider value={[extraMonthly]} onValueChange={([v]) => setExtraMonthly(v)} min={0} max={80000} step={1000} />
+                    <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
+                      <span>0</span>
+                      <span>40k</span>
+                      <span>80k</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[12px] font-semibold text-foreground">Investimento unico (R$)</p>
+                      <span className="text-[12px] font-semibold text-foreground tabular-nums">{formatBRLNoCents(oneTime)}</span>
+                    </div>
+                    <Slider value={[oneTime]} onValueChange={([v]) => setOneTime(v)} min={0} max={300000} step={5000} />
+                    <div className="mt-1.5 flex justify-between text-xxs text-muted-foreground">
+                      <span>0</span>
+                      <span>150k</span>
+                      <span>300k</span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Simulacao e uma aproximacao. Para maior precisao, mantenha faturas (A/R e A/P) e impostos atualizados.
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </AppLayout>
   );
-};
+}
 
-export default CashFlow;

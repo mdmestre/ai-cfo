@@ -20,7 +20,7 @@ export function MetricCard({ title, value, change, changeType = "neutral", icon,
       {subtitle && (
         <p className="mt-2 text-[12px] text-muted-foreground">{subtitle}</p>
       )}
-      {change && change !== "—" && (
+      {change && change !== "-" && (
         <div className="mt-2.5 flex items-center gap-1">
           {changeType === "positive" ? (
             <ArrowUpRight className="h-3 w-3 text-success" />

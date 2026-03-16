@@ -1,6 +1,6 @@
-import { Calendar, ArrowRight, Loader2 } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import { useInvoices } from "@/hooks/use-invoices";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 const formatCurrency = (value: number) => {
@@ -13,9 +13,12 @@ export function UpcomingPayments() {
   const { payables } = useInvoices();
   const navigate = useNavigate();
 
+  const openStatuses = new Set(["open", "pending", "partial"]);
+
   const openPayables = (payables.data || [])
-    .filter((p) => p.status === "open")
-    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+    .filter((p) => openStatuses.has(String(p.status || "").toLowerCase()))
+    .filter((p) => !!p.due_date)
+    .sort((a, b) => parseISO(String(a.due_date)).getTime() - parseISO(String(b.due_date)).getTime())
     .slice(0, 5);
 
   return (
@@ -42,12 +45,12 @@ export function UpcomingPayments() {
                     {(payment as any).vendor?.name || "Fornecedor"}
                   </p>
                   <p className="text-xxs text-muted-foreground">
-                    {format(new Date(payment.due_date), "dd/MM")}
+                    {format(parseISO(String(payment.due_date)), "dd/MM")}
                   </p>
                 </div>
               </div>
               <p className="text-[13px] font-semibold text-foreground">
-                {formatCurrency(Number(payment.amount_due) - Number(payment.amount_paid))}
+                {formatCurrency(Number(payment.amount) || 0)}
               </p>
             </div>
           ))

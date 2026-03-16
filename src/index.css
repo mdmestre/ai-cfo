@@ -142,6 +142,10 @@
     @apply bg-warning/5 text-foreground;
   }
 
+  .alert-critical {
+    @apply bg-destructive/5 text-foreground;
+  }
+
   .alert-success {
     @apply bg-success/5 text-foreground;
   }

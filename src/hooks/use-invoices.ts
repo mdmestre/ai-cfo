@@ -108,7 +108,7 @@ export function useInvoices() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["customers"] });
-      toast.success("Customer created");
+      toast.success("Cliente criado");
     },
   });
 
@@ -124,7 +124,7 @@ export function useInvoices() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vendors"] });
-      toast.success("Vendor created");
+      toast.success("Fornecedor criado");
     },
   });
 
@@ -144,7 +144,7 @@ export function useInvoices() {
       tax_items?: { tax_type: string; tax_rate: number; tax_base: number; tax_value: number }[];
     }) => {
       const total_amount = input.items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-      const { items, tax_items, ...invoiceData } = input;
+      const { tax_items, ...invoiceData } = input;
 
       const { data, error } = await supabase
         .from("invoices")
@@ -158,13 +158,42 @@ export function useInvoices() {
         .select()
         .single();
       if (error) throw error;
+
+      // Keep A/R and A/P tables in sync for forecasts, alerts and cash planning.
+      // Best-effort: if this fails, the invoice still exists.
+      try {
+        if (input.direction === "receivable") {
+          const { error: recErr } = await supabase.from("receivables").insert({
+            company_id: companyId!,
+            customer_id: input.customer_id,
+            description: `Fatura ${input.invoice_number}`,
+            amount: total_amount,
+            due_date: input.due_date,
+            status: "open",
+          });
+          if (recErr) throw recErr;
+        } else {
+          const { error: payErr } = await supabase.from("payables").insert({
+            company_id: companyId!,
+            vendor_id: input.vendor_id,
+            description: `Fatura ${input.invoice_number}`,
+            amount: total_amount,
+            due_date: input.due_date,
+            status: "open",
+          });
+          if (payErr) throw payErr;
+        }
+      } catch (syncErr) {
+        console.warn("Receivables/Payables sync failed:", syncErr);
+      }
+
       return data;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["receivables"] });
       qc.invalidateQueries({ queryKey: ["payables"] });
-      toast.success("Invoice created");
+      toast.success("Fatura criada");
     },
   });
 
@@ -175,7 +204,37 @@ export function useInvoices() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
-      toast.success("Invoice updated");
+      toast.success("Fatura atualizada");
+    },
+  });
+
+  const updateReceivableStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updates: Record<string, unknown> = { status };
+      if (status === "paid") updates.received_at = new Date().toISOString();
+      if (status === "open") updates.received_at = null;
+
+      const { error } = await supabase.from("receivables").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["receivables"] });
+      toast.success("Conta a receber atualizada");
+    },
+  });
+
+  const updatePayableStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updates: Record<string, unknown> = { status };
+      if (status === "paid") updates.paid_at = new Date().toISOString();
+      if (status === "open") updates.paid_at = null;
+
+      const { error } = await supabase.from("payables").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["payables"] });
+      toast.success("Conta a pagar atualizada");
     },
   });
 
@@ -189,5 +248,7 @@ export function useInvoices() {
     createVendor,
     createInvoice,
     updateInvoiceStatus,
+    updateReceivableStatus,
+    updatePayableStatus,
   };
 }

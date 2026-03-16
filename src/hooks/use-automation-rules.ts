@@ -63,7 +63,7 @@ export function useAutomationRules() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["automation-rules"] });
-      toast.success("Automation rule created");
+      toast.success("Regra criada");
     },
   });
 
@@ -85,7 +85,7 @@ export function useAutomationRules() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["automation-rules"] });
-      toast.success("Rule deleted");
+      toast.success("Regra excluida");
     },
   });
 

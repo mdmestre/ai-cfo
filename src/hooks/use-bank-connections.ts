@@ -54,7 +54,7 @@ export function useBankConnections() {
           provider,
           institution_name: institution,
           account_id: accountId,
-          status: "active",
+          status: "connected",
         })
         .select()
         .single();

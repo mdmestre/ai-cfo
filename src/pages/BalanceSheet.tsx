@@ -1,10 +1,12 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAccounting } from "@/hooks/use-accounting";
+import { useReportHashes } from "@/hooks/use-report-hashes";
 import { useMemo, useState } from "react";
 import { Loader2, Scale, Download } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 function formatCurrency(val: number) {
   return `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -12,6 +14,7 @@ function formatCurrency(val: number) {
 
 export default function BalanceSheet() {
   const { journalEntries, accounts, periods, isLoading } = useAccounting();
+  const { registerReportHash } = useReportHashes();
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all"); // Ideally, balance sheet includes ALL entries UP TO the period date. 
 
   // Balanço é acumulado. Se filtrarmos um período, pegaremos tudo até o fim daquele período.
@@ -78,6 +81,47 @@ export default function BalanceSheet() {
     };
   }, [journalEntries.data, accounts.data, periods.data, selectedPeriod]);
 
+  const downloadJson = (filename: string, obj: unknown) => {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    if (!balanceData) return toast.error("Sem dados para exportar.");
+
+    const period = selectedPeriod !== "all" ? periods.data?.find((p) => p.id === selectedPeriod) : null;
+    const payload = {
+      report_type: "balance_sheet",
+      generated_at: new Date().toISOString(),
+      position_until: period ? String(period.period_end) : new Date().toISOString().slice(0, 10),
+      period: period ? { id: period.id, period_start: period.period_start, period_end: period.period_end } : null,
+      data: balanceData,
+    };
+
+    try {
+      const hash = await registerReportHash({
+        report_type: "balance_sheet",
+        period_start: period ? String(period.period_start) : null,
+        period_end: period ? String(period.period_end) : null,
+        payload,
+      });
+
+      const suffix = period ? String(period.period_end) : "today";
+      downloadJson(`balance-sheet-${suffix}.json`, payload);
+
+      toast.success("Relatorio exportado e assinado", { description: `SHA-256: ${hash.slice(0, 12)}…` });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao exportar/assinar relatorio");
+    }
+  };
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -110,7 +154,10 @@ export default function BalanceSheet() {
                 ))}
               </SelectContent>
             </Select>
-            <button className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-foreground hover:bg-secondary"
+            >
               <Download className="h-3.5 w-3.5" /> Exportar
             </button>
           </div>

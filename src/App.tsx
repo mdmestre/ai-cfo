@@ -31,9 +31,11 @@ import TaxesApurations from "./pages/Taxes";
 import Expenses from "./pages/Expenses";
 import CardsPage from "./pages/Cards";
 import Invoices from "./pages/Invoices";
+import Payments from "./pages/Payments";
 import SavingsIntelligence from "./pages/SavingsIntelligence";
 import RiskDashboard from "./pages/RiskDashboard";
 import Treasury from "./pages/Treasury";
+import Reconciliation from "./pages/Reconciliation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +93,8 @@ function AppRoutes() {
       <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
       <Route path="/cards" element={<ProtectedRoute><CardsPage /></ProtectedRoute>} />
       <Route path="/invoices" element={<ProtectedRoute><Invoices /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+      <Route path="/reconciliation" element={<ProtectedRoute><Reconciliation /></ProtectedRoute>} />
       <Route path="/savings" element={<ProtectedRoute><SavingsIntelligence /></ProtectedRoute>} />
       <Route path="/risk" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
       <Route path="/treasury" element={<ProtectedRoute><Treasury /></ProtectedRoute>} />
@@ -105,6 +109,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <div id="belvo"></div>
         <Toaster />
         <Sonner />
         <BrowserRouter>

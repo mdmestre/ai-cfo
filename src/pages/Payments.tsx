@@ -1,185 +1,268 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { usePayments } from "@/hooks/use-payments";
-import { useCompany } from "@/hooks/use-company";
-import { Zap, QrCode, ArrowUpRight, Copy, CheckCircle2, Loader2, Clock, DollarSign } from "lucide-react";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { useInvoices } from "@/hooks/use-invoices";
+import { formatBRLCompact, formatBRLNoCents } from "@/lib/format";
+import { addDays, differenceInCalendarDays, format, parseISO, startOfDay } from "date-fns";
+import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Clock, Loader2, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
-const PixHub = () => {
-    const { company } = useCompany();
-    const { generatePix, payments, isLoading } = usePayments();
-    const [amount, setAmount] = useState("");
-    const [description, setDescription] = useState("");
-    const [generatedPix, setGeneratedPix] = useState<any>(null);
+const OPEN_STATUSES = new Set(["open", "pending", "partial"]);
 
-    const handleGenerate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!amount || Number(amount) <= 0) return toast.error("Please enter a valid amount");
+type TabKey = "receivables" | "payables";
+type FilterKey = "all" | "overdue" | "7d" | "30d";
 
-        try {
-            const result = await generatePix.mutateAsync({
-                amount: Number(amount),
-                description,
-                companyId: company!.id
-            });
-            setGeneratedPix(result);
-            toast.success("Pix QR Code generated successfully");
-        } catch (error) {
-            toast.error("Failed to generate Pix");
-        }
-    };
+function normalizeStatus(v: unknown) {
+  const s = String(v || "").trim().toLowerCase();
+  return s || "open";
+}
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        toast.success("Pix code copied to clipboard");
-    };
+export default function Payments() {
+  const { receivables, payables, updateReceivableStatus, updatePayableStatus } = useInvoices();
+  const [tab, setTab] = useState<TabKey>("receivables");
+  const [filter, setFilter] = useState<FilterKey>("all");
 
-    return (
-        <AppLayout>
-            <div className="max-w-[1200px] space-y-8 animate-fade-in">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-semibold text-foreground tracking-tight">Pix Payment Hub</h1>
-                        <p className="mt-0.5 text-[13px] text-muted-foreground">Instantly generate and track payments via Pix</p>
-                    </div>
-                    <div className="flex h-10 items-center gap-2 rounded-lg bg-success/5 px-4 text-[13px] font-bold text-success border border-success/10">
-                        <Zap className="h-4 w-4" />
-                        Instant 24/7 Processing
-                    </div>
-                </div>
+  const now = startOfDay(new Date());
+  const d7 = addDays(now, 7);
+  const d30 = addDays(now, 30);
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                    {/* Pix Generator Form */}
-                    <div className="lg:col-span-1">
-                        <div className="metric-card space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/5 text-primary">
-                                    <QrCode className="h-5 w-5" />
-                                </div>
-                                <h2 className="text-[15px] font-bold text-foreground">Generate Payment</h2>
-                            </div>
+  const rRows = useMemo(() => {
+    return (receivables.data || []).map((r: any) => {
+      const status = normalizeStatus(r.status);
+      const isOpen = OPEN_STATUSES.has(status);
+      const isPaid = status === "paid";
+      const due = r.due_date ? parseISO(String(r.due_date)) : null;
+      const amount = Number(r.amount) || 0;
+      const isOverdue = Boolean(isOpen && due && due < now);
+      const daysLate = isOverdue && due ? differenceInCalendarDays(now, due) : 0;
+      return { row: r, isOpen, isPaid, due, amount, isOverdue, daysLate };
+    });
+  }, [now, receivables.data]);
 
-                            <form onSubmit={handleGenerate} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xxs font-bold uppercase tracking-wider text-muted-foreground/70">Amount (BRL)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 text-[13px] font-bold">R$</span>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            value={amount}
-                                            onChange={(e) => setAmount(e.target.value)}
-                                            className="w-full rounded-lg border border-border/50 bg-secondary/20 pl-9 pr-3 py-2.5 text-[14px] font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                                        />
-                                    </div>
-                                </div>
+  const pRows = useMemo(() => {
+    return (payables.data || []).map((p: any) => {
+      const status = normalizeStatus(p.status);
+      const isOpen = OPEN_STATUSES.has(status);
+      const isPaid = status === "paid";
+      const due = p.due_date ? parseISO(String(p.due_date)) : null;
+      const amount = Number(p.amount) || 0;
+      const isOverdue = Boolean(isOpen && due && due < now);
+      const daysLate = isOverdue && due ? differenceInCalendarDays(now, due) : 0;
+      return { row: p, isOpen, isPaid, due, amount, isOverdue, daysLate };
+    });
+  }, [now, payables.data]);
 
-                                <div className="space-y-1.5">
-                                    <label className="text-xxs font-bold uppercase tracking-wider text-muted-foreground/70">Description (Optional)</label>
-                                    <textarea
-                                        placeholder="e.g. Service Invoice #402"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        className="w-full rounded-lg border border-border/50 bg-secondary/20 px-3 py-2.5 text-[13px] text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-none"
-                                    />
-                                </div>
+  const totals = useMemo(() => {
+    const rOpen = rRows.filter((x) => x.isOpen).reduce((s, x) => s + x.amount, 0);
+    const pOpen = pRows.filter((x) => x.isOpen).reduce((s, x) => s + x.amount, 0);
+    const rOverdue = rRows.filter((x) => x.isOverdue).reduce((s, x) => s + x.amount, 0);
+    const pOverdue = pRows.filter((x) => x.isOverdue).reduce((s, x) => s + x.amount, 0);
+    return { rOpen, pOpen, rOverdue, pOverdue };
+  }, [pRows, rRows]);
 
-                                <button
-                                    type="submit"
-                                    disabled={generatePix.isPending}
-                                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-[14px] font-bold text-white hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 shadow-md"
-                                >
-                                    {generatePix.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                                    Generate Instant Pix
-                                </button>
-                            </form>
+  const filtered = useMemo(() => {
+    const base = tab === "receivables" ? rRows : pRows;
+    if (filter === "all") return base;
+    if (filter === "overdue") return base.filter((x) => x.isOverdue);
+    if (filter === "7d") return base.filter((x) => x.isOpen && x.due && x.due >= now && x.due <= d7);
+    if (filter === "30d") return base.filter((x) => x.isOpen && x.due && x.due >= now && x.due <= d30);
+    return base;
+  }, [d30, d7, filter, now, pRows, rRows, tab]);
 
-                            {generatedPix && (
-                                <div className="pt-6 animate-slide-up border-t border-border/40">
-                                    <div className="flex flex-col items-center justify-center space-y-4 rounded-xl bg-secondary/30 p-6 border border-border/20">
-                                        <div className="h-32 w-32 bg-white p-2 rounded-lg shadow-sm border border-border/40">
-                                            {/* Simplified placeholder for actual QR code */}
-                                            <div className="h-full w-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                                <QrCode className="h-12 w-12" />
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-lg font-bold text-foreground">R$ {generatedPix.amount.toFixed(2)}</p>
-                                            <p className="text-xxs font-bold uppercase text-muted-foreground">Expires in 30:00</p>
-                                        </div>
-                                        <button
-                                            onClick={() => copyToClipboard(generatedPix.qrCodeString)}
-                                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-[12px] font-bold text-primary hover:bg-primary/5 transition-all"
-                                        >
-                                            <Copy className="h-3.5 w-3.5" />
-                                            Copy Pix Code
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+  const isLoading = receivables.isLoading || payables.isLoading;
 
-                    {/* Activity List */}
-                    <div className="lg:col-span-2">
-                        <div className="metric-card h-full min-h-[500px]">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-[15px] font-bold text-foreground">Pix Transactions</h2>
-                                <div className="flex gap-2">
-                                    <span className="flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xxs font-bold text-muted-foreground uppercase border border-border/50">All</span>
-                                </div>
-                            </div>
+  const onSetStatus = async (id: string, status: "paid" | "open") => {
+    try {
+      if (tab === "receivables") {
+        await updateReceivableStatus.mutateAsync({ id, status });
+      } else {
+        await updatePayableStatus.mutateAsync({ id, status });
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao atualizar status.");
+    }
+  };
 
-                            <div className="space-y-0 relative">
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center py-20">
-                                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/30" />
-                                    </div>
-                                ) : payments.length > 0 ? (
-                                    <div className="divide-y divide-border/40">
-                                        {payments.map((payment: any) => (
-                                            <div key={payment.id} className="flex items-center justify-between py-4 group hover:bg-secondary/5 transition-colors rounded-lg px-2 -mx-2">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${payment.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                                        {payment.status === 'completed' ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[14px] font-bold text-foreground">R$ {Number(payment.amount).toFixed(2)}</p>
-                                                        <p className="text-xxs font-bold uppercase tracking-tight text-muted-foreground/60">
-                                                            {format(new Date(payment.created_at || new Date()), "MMM dd, HH:mm")} · {payment.id.substring(0, 8)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-6">
-                                                    <div className="text-right">
-                                                        <p className={`text-[11px] font-bold uppercase tracking-widest ${payment.status === 'completed' ? 'text-success' : 'text-warning'}`}>
-                                                            {payment.status}
-                                                        </p>
-                                                    </div>
-                                                    <button className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-secondary transition-all">
-                                                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                                        <div className="h-16 w-16 bg-secondary flex items-center justify-center rounded-full mb-4">
-                                            <DollarSign className="h-8 w-8 text-muted-foreground/20" />
-                                        </div>
-                                        <p className="text-[13px] font-bold text-muted-foreground/40 uppercase tracking-widest">No Pix payments tracked yet</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <AppLayout>
+      <div className="max-w-[1200px] space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground tracking-tight">Pagamentos</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">
+              Contas a receber e a pagar. Isso alimenta previsao de caixa e alertas.
+            </p>
+          </div>
+
+          <Link
+            to="/invoices"
+            className="flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-[13px] font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            <Plus className="h-4 w-4" />
+            Nova fatura
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="metric-card">
+            <p className="section-label">A receber (aberto)</p>
+            <p className="mt-2 text-[22px] font-bold text-foreground tabular-nums">{formatBRLCompact(totals.rOpen)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Base: faturas a receber</p>
+          </div>
+          <div className="metric-card">
+            <p className="section-label">A pagar (aberto)</p>
+            <p className="mt-2 text-[22px] font-bold text-foreground tabular-nums">{formatBRLCompact(totals.pOpen)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Base: faturas a pagar</p>
+          </div>
+          <div className="metric-card">
+            <p className="section-label">Vencidos (a receber)</p>
+            <p className="mt-2 text-[22px] font-bold text-destructive tabular-nums">{formatBRLCompact(totals.rOverdue)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Cobranca imediata</p>
+          </div>
+          <div className="metric-card">
+            <p className="section-label">Vencidos (a pagar)</p>
+            <p className="mt-2 text-[22px] font-bold text-destructive tabular-nums">{formatBRLCompact(totals.pOverdue)}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Risco de juros/multa</p>
+          </div>
+        </div>
+
+        <div className="metric-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTab("receivables")}
+                className={`rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                  tab === "receivables" ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/70"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <ArrowDownLeft className="h-4 w-4" />
+                  A receber
+                </span>
+              </button>
+              <button
+                onClick={() => setTab("payables")}
+                className={`rounded-lg px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                  tab === "payables" ? "bg-foreground text-background" : "bg-secondary text-foreground hover:bg-secondary/70"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <ArrowUpRight className="h-4 w-4" />
+                  A pagar
+                </span>
+              </button>
             </div>
-        </AppLayout>
-    );
-};
 
-export default PixHub;
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { key: "all", label: "Tudo" },
+                { key: "overdue", label: "Vencidos" },
+                { key: "7d", label: "Proximos 7d" },
+                { key: "30d", label: "Proximos 30d" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key as FilterKey)}
+                  className={`rounded-full border px-3 py-1 text-[12px] font-medium transition-colors ${
+                    filter === f.key
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border bg-background text-foreground hover:bg-secondary/40"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b text-left text-muted-foreground bg-muted/20">
+                  <th className="p-3 font-medium">Vencimento</th>
+                  <th className="p-3 font-medium">Contato</th>
+                  <th className="p-3 font-medium">Descricao</th>
+                  <th className="p-3 font-medium text-right">Valor</th>
+                  <th className="p-3 font-medium">Status</th>
+                  <th className="p-3 font-medium text-right">Acao</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={6} className="p-10 text-center text-muted-foreground">
+                      <div className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Carregando...
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-10 text-center text-muted-foreground">
+                      Nenhum registro para este filtro.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((x: any) => {
+                    const contact =
+                      tab === "receivables"
+                        ? (x.row.customers?.name as string) || "Cliente"
+                        : (x.row.vendors?.name as string) || "Fornecedor";
+
+                    const dueLabel = x.due ? format(x.due, "dd/MM") : "-";
+
+                    const statusBadge = x.isPaid ? (
+                      <Badge variant="outline" className="border-success/30 text-success bg-success/10">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Pago
+                      </Badge>
+                    ) : x.isOverdue ? (
+                      <Badge variant="outline" className="border-destructive/30 text-destructive bg-destructive/10">
+                        <Clock className="h-3 w-3 mr-1" /> Vencido ({x.daysLate}d)
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-warning/30 text-warning bg-warning/10">
+                        <Clock className="h-3 w-3 mr-1" /> Em aberto
+                      </Badge>
+                    );
+
+                    return (
+                      <tr key={x.row.id} className="border-b last:border-0 hover:bg-muted/30">
+                        <td className="p-3 text-muted-foreground tabular-nums">{dueLabel}</td>
+                        <td className="p-3 font-medium text-foreground">{contact}</td>
+                        <td className="p-3 text-muted-foreground">{x.row.description}</td>
+                        <td className="p-3 text-right font-mono tabular-nums text-foreground">
+                          {formatBRLNoCents(x.amount)}
+                        </td>
+                        <td className="p-3">{statusBadge}</td>
+                        <td className="p-3 text-right">
+                          {x.isOpen ? (
+                            <button
+                              onClick={() => onSetStatus(x.row.id, "paid")}
+                              className="text-[11px] font-bold text-success hover:underline px-2"
+                            >
+                              Dar baixa
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onSetStatus(x.row.id, "open")}
+                              className="text-[11px] font-bold text-muted-foreground hover:underline px-2"
+                            >
+                              Reabrir
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
+

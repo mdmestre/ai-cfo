@@ -6,10 +6,10 @@ import { streamChat, type AiMessage } from "@/lib/ai-stream";
 import { toast } from "sonner";
 
 const suggestedQuestions = [
-  "What's my current cash position?",
-  "How much can I spend next month?",
-  "Why did expenses increase?",
-  "How is my burn rate?",
+  "Qual meu caixa hoje?",
+  "Quanto posso gastar por mes sem quebrar?",
+  "Por que minhas despesas aumentaram?",
+  "Quando meu caixa fica negativo?",
 ];
 
 const AIAssistant = () => {
@@ -18,7 +18,7 @@ const AIAssistant = () => {
     {
       role: "assistant",
       content:
-        "Hello! I'm **Atlas AI**, your dedicated CFO assistant. I have real-time access to your financial data — accounts, expenses, ledger, and wallets. What would you like to analyze?",
+        "Oi! Eu sou o **Atlas AI**, seu CFO digital. Posso ajudar com caixa, previsao (90 dias), impostos e alertas. O que voce quer analisar?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -70,7 +70,7 @@ const AIAssistant = () => {
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "I'm having trouble connecting to the AI engine right now. Please try again." },
+        { role: "assistant", content: "Estou com dificuldade para conectar no motor de IA agora. Tente novamente em instantes." },
       ]);
       setIsStreaming(false);
     }
@@ -87,7 +87,7 @@ const AIAssistant = () => {
             <h1 className="text-xl font-semibold text-foreground tracking-tight">AI Copilot</h1>
           </div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Digital CFO with real-time access to your financial infrastructure
+            CFO digital com contexto do seu caixa, transacoes, faturas e impostos
           </p>
         </div>
 
@@ -133,7 +133,7 @@ const AIAssistant = () => {
               <div className="bg-card border border-border/40 rounded-2xl px-6 py-4 rounded-tl-none shadow-sm flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-primary/50" />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                  Analyzing...
+                  Analisando...
                 </span>
               </div>
             </div>
@@ -163,7 +163,7 @@ const AIAssistant = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !isStreaming && handleSend()}
               disabled={isStreaming}
-              placeholder="Message your financial operating system..."
+              placeholder="Pergunte sobre seu caixa, impostos, clientes..."
               className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/50 outline-none px-2"
             />
             <button
@@ -175,7 +175,7 @@ const AIAssistant = () => {
             </button>
           </div>
           <p className="text-center text-[10px] text-muted-foreground/40 font-medium uppercase tracking-widest">
-            AI can make financial mistakes. Always verify critical decisions.
+            IA pode errar. Valide decisoes criticas com seu contador e extratos.
           </p>
         </div>
       </div>

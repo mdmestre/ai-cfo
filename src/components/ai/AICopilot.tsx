@@ -13,7 +13,7 @@ export function AICopilot() {
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<AiMessage[]>([
-        { role: 'assistant', content: "Hi! I'm Atlas AI, your dedicated CFO. How can I help you with your finances today?" }
+        { role: 'assistant', content: "Oi! Eu sou o Atlas AI, seu CFO digital. Quer olhar caixa, impostos, alertas ou previsao de 90 dias?" }
     ]);
     const [isStreaming, setIsStreaming] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ export function AICopilot() {
                 onError: (err) => { toast.error(err); setIsStreaming(false); },
             });
         } catch {
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Network error. Please try again.' }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Falha de rede. Tente novamente.' }]);
             setIsStreaming(false);
         }
     };
@@ -113,7 +113,7 @@ export function AICopilot() {
                                 </div>
                                 <div className="p-3 rounded-2xl bg-card border flex items-center gap-2 rounded-tl-none shadow-sm">
                                     <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Thinking</span>
+                                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Analisando</span>
                                 </div>
                             </div>
                         )}
@@ -121,7 +121,7 @@ export function AICopilot() {
 
                     <div className="p-4 border-t flex gap-2">
                         <Input
-                            placeholder="Ask me anything..."
+                            placeholder="Pergunte sobre seu caixa, impostos, clientes..."
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSend()}

@@ -1,244 +1,233 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { CheckCircle, AlertTriangle, TrendingUp, TrendingDown, ArrowRight, Info } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { useAccounts } from "@/hooks/use-accounts";
+import { useInvoices } from "@/hooks/use-invoices";
+import { useTransactions } from "@/hooks/use-transactions";
+import { useWallets } from "@/hooks/use-wallets";
+import { formatBRLCompact } from "@/lib/format";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
+import { useMemo } from "react";
+import { format, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { ShieldCheck, TrendingUp, TrendingDown, Wallet, Scale } from "lucide-react";
 
-const overallScore = 78;
+function clamp01(x: number) {
+  return Math.max(0, Math.min(1, x));
+}
 
-const factors = [
-  {
-    name: "Cash Flow Stability",
-    score: 82,
-    weight: 25,
-    status: "good" as const,
-    detail: "Consistent positive cash flow over the last 6 months",
-    trend: "+3",
-    subMetrics: [
-      { label: "Monthly variance", value: "Low", good: true },
-      { label: "Cash runway", value: "7.3 months", good: true },
-      { label: "Operating cash flow", value: "+$170K/mo", good: true },
-    ],
-  },
-  {
-    name: "Revenue Predictability",
-    score: 74,
-    weight: 20,
-    status: "good" as const,
-    detail: "MRR growing steadily with low churn rate",
-    trend: "+5",
-    subMetrics: [
-      { label: "MRR growth", value: "8.2%", good: true },
-      { label: "Churn rate", value: "2.1%", good: true },
-      { label: "Revenue variance", value: "Moderate", good: false },
-    ],
-  },
-  {
-    name: "Expense Ratio",
-    score: 88,
-    weight: 20,
-    status: "good" as const,
-    detail: "Operating expenses at 64% of revenue — within healthy range",
-    trend: "+1",
-    subMetrics: [
-      { label: "OpEx ratio", value: "64%", good: true },
-      { label: "Burn efficiency", value: "High", good: true },
-      { label: "Cost trend", value: "+3.1%/mo", good: false },
-    ],
-  },
-  {
-    name: "Debt Exposure",
-    score: 92,
-    weight: 15,
-    status: "good" as const,
-    detail: "Minimal debt with healthy debt-to-equity ratio",
-    trend: "0",
-    subMetrics: [
-      { label: "Debt-to-equity", value: "0.12", good: true },
-      { label: "Interest coverage", value: "18x", good: true },
-      { label: "Credit utilization", value: "8%", good: true },
-    ],
-  },
-  {
-    name: "Customer Concentration",
-    score: 54,
-    weight: 20,
-    status: "warning" as const,
-    detail: "Top client represents 38% of total revenue — high risk",
-    trend: "-2",
-    subMetrics: [
-      { label: "Top client share", value: "38%", good: false },
-      { label: "Top 3 clients", value: "61%", good: false },
-      { label: "Client count", value: "24", good: true },
-    ],
-  },
-];
+function scoreLiquidity(runwayMonths: number) {
+  if (!Number.isFinite(runwayMonths)) return 90;
+  if (runwayMonths >= 12) return 100;
+  if (runwayMonths >= 6) return 80;
+  if (runwayMonths >= 3) return 60;
+  if (runwayMonths >= 1) return 40;
+  return 20;
+}
 
-const historyData = [
-  { month: "Oct", score: 71 },
-  { month: "Nov", score: 73 },
-  { month: "Dec", score: 70 },
-  { month: "Jan", score: 74 },
-  { month: "Feb", score: 76 },
-  { month: "Mar", score: 78 },
-];
+function scoreMargin(margin: number | null) {
+  if (margin === null) return 0;
+  if (margin >= 0.2) return 100;
+  if (margin >= 0.1) return 80;
+  if (margin >= 0) return 60;
+  if (margin >= -0.1) return 40;
+  return 20;
+}
 
-const recommendations = [
-  { text: "Diversify client base — reduce top client dependency below 25%", priority: "High" },
-  { text: "Build 3-month cash reserve to improve stability score", priority: "Medium" },
-  { text: "Negotiate annual contracts to improve revenue predictability", priority: "Medium" },
-];
+function scoreGrowth(growth: number | null) {
+  if (growth === null) return 0;
+  if (growth >= 0.15) return 100;
+  if (growth >= 0.05) return 80;
+  if (growth >= 0) return 65;
+  if (growth >= -0.1) return 45;
+  return 25;
+}
 
-const FinancialScore = () => {
-  const circumference = 2 * Math.PI * 76;
-  const progress = (overallScore / 100) * circumference;
+function scoreDebt(openPayables: number, monthlyRevenue: number) {
+  if (monthlyRevenue <= 0) return openPayables > 0 ? 30 : 60;
+  const ratio = openPayables / monthlyRevenue; // how many months of revenue are already committed
+  if (ratio <= 0.25) return 90;
+  if (ratio <= 0.5) return 75;
+  if (ratio <= 1) return 55;
+  return 35;
+}
 
-  const getScoreColor = (s: number) => {
-    if (s >= 75) return "text-success";
-    if (s >= 50) return "text-warning";
-    return "text-destructive";
-  };
+function scoreLabel(score: number) {
+  if (score >= 80) return "Excelente";
+  if (score >= 60) return "Boa";
+  if (score >= 40) return "Regular";
+  return "Critica";
+}
 
-  const getBarColor = (s: number) => {
-    if (s >= 75) return "hsl(152 69% 41%)";
-    if (s >= 50) return "hsl(38 92% 50%)";
-    return "hsl(0 72% 51%)";
-  };
+export default function FinancialScore() {
+  const { totalBalance, isLoading: accLoading } = useAccounts();
+  const { totalWalletBalance, isLoading: walletLoading } = useWallets();
+  const { transactions, monthlyRevenue, monthlyExpenses, isLoading: txLoading } = useTransactions();
+  const { payables } = useInvoices();
+
+  const openStatuses = useMemo(() => new Set(["open", "pending", "partial"]), []);
+  const openPayables = (payables.data || [])
+    .filter((p: any) => openStatuses.has(String(p.status || "").toLowerCase()))
+    .reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+
+  const cash = totalBalance + totalWalletBalance;
+  const profit = monthlyRevenue - monthlyExpenses;
+  const margin = monthlyRevenue > 0 ? profit / monthlyRevenue : null;
+
+  const lastMonthRevenue = useMemo(() => {
+    const d = subMonths(new Date(), 1);
+    return transactions
+      .filter((t: any) => {
+        const td = new Date(t.date);
+        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() && Number(t.amount) > 0;
+      })
+      .reduce((s: number, t: any) => s + Number(t.amount), 0);
+  }, [transactions]);
+
+  const growth = lastMonthRevenue > 0 ? (monthlyRevenue - lastMonthRevenue) / lastMonthRevenue : null;
+
+  const runwayMonths = monthlyExpenses > 0 ? cash / monthlyExpenses : Infinity;
+
+  const factors = useMemo(() => {
+    const liquidity = scoreLiquidity(runwayMonths);
+    const marginScoreVal = scoreMargin(margin);
+    const growthScoreVal = scoreGrowth(growth);
+    const debt = scoreDebt(openPayables, monthlyRevenue);
+
+    const overall = Math.round(liquidity * 0.35 + marginScoreVal * 0.25 + growthScoreVal * 0.2 + debt * 0.2);
+
+    return {
+      overall,
+      liquidity,
+      margin: marginScoreVal,
+      growth: growthScoreVal,
+      debt,
+    };
+  }, [growth, margin, monthlyRevenue, openPayables, runwayMonths]);
+
+  const history = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = subMonths(new Date(), 5 - i);
+      const monthTx = transactions.filter((t: any) => {
+        const td = new Date(t.date);
+        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+      });
+      const rev = monthTx.filter((t: any) => Number(t.amount) > 0).reduce((s: number, t: any) => s + Number(t.amount), 0);
+      const exp = monthTx.filter((t: any) => Number(t.amount) < 0).reduce((s: number, t: any) => s + Math.abs(Number(t.amount)), 0);
+      const prof = rev - exp;
+      const m = rev > 0 ? prof / rev : null;
+
+      // Very rough: use current cash + net as proxy (MVP) to avoid reconstructing historical balance.
+      const runway = exp > 0 ? clamp01((cash / exp) / 12) : 0.75;
+      const liq = Math.round(runway * 100);
+      const marg = scoreMargin(m);
+      const ov = Math.round(liq * 0.35 + marg * 0.65);
+
+      return { month: format(d, "MMM", { locale: ptBR }), score: ov };
+    });
+  }, [cash, transactions]);
+
+  const isLoading = accLoading || walletLoading || txLoading || payables.isLoading;
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-[13px] text-muted-foreground">Carregando...</div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
-      <div className="max-w-[1200px] space-y-6">
+      <div className="max-w-[1120px] space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Financial Health Score</h1>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-accent" />
+            <h1 className="text-xl font-semibold text-foreground">Saude Financeira</h1>
+          </div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Comprehensive assessment based on cash stability, expense ratio, revenue predictability, and more
+            Um score simples para acompanhar liquidez, margem, crescimento e endividamento.
           </p>
         </div>
 
-        {/* Score hero + history */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="metric-card flex flex-col items-center py-8">
-            <div className="relative">
-              <svg width="170" height="170" viewBox="0 0 164 164">
-                <circle cx="82" cy="82" r="76" fill="none" stroke="hsl(0 0% 94%)" strokeWidth="6" />
-                <circle
-                  cx="82" cy="82" r="76" fill="none"
-                  stroke="hsl(152 69% 41%)"
-                  strokeWidth="6" strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={circumference - progress}
-                  transform="rotate(-90 82 82)"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold text-foreground">{overallScore}</span>
-                <span className="text-[13px] text-muted-foreground mt-0.5">out of 100</span>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <div className="metric-card animate-slide-up">
+            <p className="section-label">Score</p>
+            <p className="mt-3 text-[36px] font-bold text-foreground leading-none tabular-nums">{factors.overall}</p>
+            <p className="mt-2 text-[13px] font-semibold text-muted-foreground">{scoreLabel(factors.overall)}</p>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-[12px] text-muted-foreground">
+              <div className="rounded-lg bg-secondary/20 p-3">
+                <p className="text-xxs font-bold uppercase tracking-wider">Caixa</p>
+                <p className="mt-1 font-semibold text-foreground">{formatBRLCompact(cash)}</p>
               </div>
-            </div>
-            <p className="mt-3 text-sm font-semibold text-success">Good Financial Health</p>
-            <div className="mt-1 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-success" />
-              <span className="text-xxs text-success font-medium">+4 pts from last month</span>
+              <div className="rounded-lg bg-secondary/20 p-3">
+                <p className="text-xxs font-bold uppercase tracking-wider">Runway</p>
+                <p className="mt-1 font-semibold text-foreground">{Number.isFinite(runwayMonths) ? `${runwayMonths.toFixed(1)} meses` : "Ilimitado"}</p>
+              </div>
             </div>
           </div>
 
-          {/* Score history */}
-          <div className="metric-card lg:col-span-2">
-            <p className="text-[13px] font-medium text-muted-foreground mb-4">Score History (6 months)</p>
-            <div className="h-[180px]">
+          <div className="metric-card animate-slide-up lg:col-span-2">
+            <p className="section-label mb-3">Historico (6 meses)</p>
+            <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={historyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-                  <YAxis domain={[50, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(0 0% 45%)' }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid hsl(0 0% 92%)', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)' }}
-                  />
-                  <Bar dataKey="score" radius={[3, 3, 0, 0]} fill="hsl(0 0% 9%)" />
+                <BarChart data={history} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip formatter={(value: number) => [`${value}/100`, "Score"]} />
+                  <Bar dataKey="score" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        {/* Factor breakdown */}
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3">Score Breakdown</h2>
-          <div className="space-y-2">
-            {factors.map((factor) => (
-              <div key={factor.name} className="metric-card !py-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start gap-3">
-                    {factor.status === "good" ? (
-                      <CheckCircle className="h-4 w-4 text-success mt-0.5" />
-                    ) : (
-                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                    )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-[13px] font-medium text-foreground">{factor.name}</p>
-                        <span className="text-xxs text-muted-foreground">Weight: {factor.weight}%</span>
-                      </div>
-                      <p className="text-xxs text-muted-foreground mt-0.5">{factor.detail}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1">
-                      {Number(factor.trend) > 0 ? (
-                        <TrendingUp className="h-3 w-3 text-success" />
-                      ) : Number(factor.trend) < 0 ? (
-                        <TrendingDown className="h-3 w-3 text-destructive" />
-                      ) : (
-                        <span className="h-3 w-3" />
-                      )}
-                      <span className={`text-xxs font-medium ${Number(factor.trend) > 0 ? "text-success" : Number(factor.trend) < 0 ? "text-destructive" : "text-muted-foreground"}`}>
-                        {Number(factor.trend) > 0 ? `+${factor.trend}` : factor.trend}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-20 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${factor.score}%`, backgroundColor: getBarColor(factor.score) }}
-                        />
-                      </div>
-                      <span className={`text-[13px] font-semibold w-7 text-right ${getScoreColor(factor.score)}`}>{factor.score}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sub-metrics */}
-                <div className="ml-7 flex gap-4">
-                  {factor.subMetrics.map((sub) => (
-                    <div key={sub.label} className="flex items-center gap-1.5">
-                      <span className={`h-1.5 w-1.5 rounded-full ${sub.good ? "bg-success" : "bg-warning"}`} />
-                      <span className="text-xxs text-muted-foreground">{sub.label}:</span>
-                      <span className={`text-xxs font-medium ${sub.good ? "text-foreground" : "text-warning"}`}>{sub.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+          <div className="metric-card animate-slide-up">
+            <div className="flex items-center justify-between">
+              <p className="section-label">Liquidez</p>
+              <Wallet className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-3 text-[28px] font-bold text-foreground tabular-nums">{factors.liquidity}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">Baseado no runway (meses de caixa).</p>
           </div>
-        </div>
 
-        {/* Recommendations */}
-        <div>
-          <h2 className="text-sm font-semibold text-foreground mb-3">Recommendations to Improve Score</h2>
-          <div className="space-y-2">
-            {recommendations.map((rec, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 group cursor-pointer hover:bg-secondary/30 transition-colors">
-                <Info className="h-4 w-4 text-accent shrink-0" />
-                <span className="text-[13px] text-foreground flex-1">{rec.text}</span>
-                <span className={`text-xxs font-medium rounded-full px-2 py-0.5 ${rec.priority === "High" ? "bg-accent/8 text-accent" : "bg-secondary text-muted-foreground"}`}>
-                  {rec.priority}
-                </span>
-                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            ))}
+          <div className="metric-card animate-slide-up">
+            <div className="flex items-center justify-between">
+              <p className="section-label">Margem</p>
+              <TrendingUp className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-3 text-[28px] font-bold text-foreground tabular-nums">{factors.margin}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              {margin === null ? "Sem dados" : `Margem do mes: ${(margin * 100).toFixed(0)}%`}
+            </p>
+          </div>
+
+          <div className="metric-card animate-slide-up">
+            <div className="flex items-center justify-between">
+              <p className="section-label">Crescimento</p>
+              <TrendingDown className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-3 text-[28px] font-bold text-foreground tabular-nums">{factors.growth}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              {growth === null ? "Sem historico suficiente" : `Receita vs mes anterior: ${(growth * 100).toFixed(0)}%`}
+            </p>
+          </div>
+
+          <div className="metric-card animate-slide-up">
+            <div className="flex items-center justify-between">
+              <p className="section-label">Endividamento</p>
+              <Scale className="h-4 w-4 text-muted-foreground/60" />
+            </div>
+            <p className="mt-3 text-[28px] font-bold text-foreground tabular-nums">{factors.debt}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">
+              A pagar (aberto): {formatBRLCompact(openPayables)}
+            </p>
           </div>
         </div>
       </div>
     </AppLayout>
   );
-};
+}
 
-export default FinancialScore;

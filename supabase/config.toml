@@ -1,0 +1,2 @@
+[functions.belvo-token]
+verify_jwt = false

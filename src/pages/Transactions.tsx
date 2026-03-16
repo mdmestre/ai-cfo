@@ -1,45 +1,59 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Search, Filter, Download, ArrowUpDown, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useTransactions } from "@/hooks/use-transactions";
 import { useAccounts } from "@/hooks/use-accounts";
 import { format } from "date-fns";
-
-const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
-  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
-  return `$${Math.abs(value).toFixed(2)}`;
-};
+import { ptBR } from "date-fns/locale";
+import { formatBRL } from "@/lib/format";
+import { toast } from "sonner";
 
 const Transactions = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
-  const { transactions, isLoading, createTransaction } = useTransactions();
+  const [activeFilter, setActiveFilter] = useState<"All" | "Revenue" | "Expenses">("All");
+  const { transactions, isLoading, createTransaction, autoCategorizeTransactions } = useTransactions();
   const { accounts } = useAccounts();
 
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ account_id: "", amount: "", category: "", description: "", date: "" });
 
-  const filtered = transactions.filter(
-    (t) =>
-      ((t.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (activeFilter === "All" ||
-        (activeFilter === "Revenue" && t.amount > 0) ||
-        (activeFilter === "Expenses" && t.amount < 0))
-  );
+  const filtered = transactions.filter((t: any) => {
+    const q = searchQuery.trim().toLowerCase();
+    const hay = `${t.description || ""} ${t.category || ""}`.toLowerCase();
+    const matchesQuery = q.length === 0 || hay.includes(q);
+    const matchesFilter =
+      activeFilter === "All" ||
+      (activeFilter === "Revenue" && Number(t.amount) > 0) ||
+      (activeFilter === "Expenses" && Number(t.amount) < 0);
+    return matchesQuery && matchesFilter;
+  });
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    createTransaction.mutate({
-      account_id: formData.account_id,
-      amount: parseFloat(formData.amount),
-      category: formData.category,
-      description: formData.description,
-      date: formData.date || new Date().toISOString(),
-    });
+    createTransaction.mutate(
+      {
+        account_id: formData.account_id,
+        amount: parseFloat(formData.amount),
+        category: formData.category || "Uncategorized",
+        description: formData.description,
+        date: formData.date ? new Date(formData.date).toISOString() : new Date().toISOString(),
+      },
+      {
+        onSuccess: () => toast.success("Transacao criada"),
+        onError: (err: any) => toast.error(err?.message || "Erro ao criar transacao"),
+      }
+    );
     setFormData({ account_id: "", amount: "", category: "", description: "", date: "" });
     setShowForm(false);
+  };
+
+  const handleAutoCategorize = async () => {
+    try {
+      const res = await autoCategorizeTransactions.mutateAsync();
+      toast.success("Classificacao concluida", { description: `${res.updated} transacao(oes) atualizada(s).` });
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao auto-classificar");
+    }
   };
 
   if (isLoading) {
@@ -57,23 +71,38 @@ const Transactions = () => {
       <div className="max-w-[1200px] space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Transactions</h1>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">View and manage all financial transactions</p>
+            <h1 className="text-xl font-semibold text-foreground">Transacoes</h1>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">Todas as movimentacoes de caixa (bancos e carteiras)</p>
           </div>
+
           <div className="flex gap-2">
+            <button
+              onClick={handleAutoCategorize}
+              disabled={autoCategorizeTransactions.isPending}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-[13px] font-semibold text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+              title="Auto-classifica transacoes sem categoria"
+            >
+              {autoCategorizeTransactions.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              Auto-classificar
+            </button>
+
             <button
               onClick={() => setShowForm(!showForm)}
               className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-medium text-accent-foreground hover:opacity-90 transition-opacity"
             >
               <Plus className="h-3.5 w-3.5" />
-              Add
+              Adicionar
             </button>
           </div>
         </div>
 
         {showForm && (
           <form onSubmit={handleCreate} className="metric-card space-y-3">
-            <p className="text-[13px] font-medium text-foreground">New Transaction</p>
+            <p className="text-[13px] font-medium text-foreground">Nova transacao</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <select
                 value={formData.account_id}
@@ -81,35 +110,40 @@ const Transactions = () => {
                 required
                 className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground outline-none"
               >
-                <option value="">Select account</option>
-                {accounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.bank_name} ({a.account_type})</option>
+                <option value="">Selecione a conta</option>
+                {accounts.map((a: any) => (
+                  <option key={a.id} value={a.id}>
+                    {a.bank_name} ({a.account_type})
+                  </option>
                 ))}
               </select>
+
               <input
                 type="number"
                 step="0.01"
-                placeholder="Amount (negative for expense)"
+                placeholder="Valor (negativo = despesa)"
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 required
                 className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
               />
+
               <input
                 type="text"
-                placeholder="Category"
+                placeholder="Categoria"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                required
                 className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
               />
+
               <input
                 type="text"
-                placeholder="Description"
+                placeholder="Descricao"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="rounded-md border border-border bg-card px-3 py-1.5 text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
               />
+
               <div className="flex gap-2">
                 <input
                   type="date"
@@ -122,7 +156,7 @@ const Transactions = () => {
                   disabled={createTransaction.isPending}
                   className="rounded-md bg-foreground px-3 py-1.5 text-[13px] font-medium text-background hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {createTransaction.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                  {createTransaction.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar"}
                 </button>
               </div>
             </div>
@@ -134,13 +168,13 @@ const Transactions = () => {
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search transactions..."
+              placeholder="Buscar transacoes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground outline-none"
             />
           </div>
-          {["All", "Revenue", "Expenses"].map((cat) => (
+          {(["All", "Revenue", "Expenses"] as const).map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveFilter(cat)}
@@ -150,7 +184,7 @@ const Transactions = () => {
                   : "border border-border bg-card text-foreground hover:bg-secondary"
               }`}
             >
-              {cat}
+              {cat === "All" ? "Tudo" : cat === "Revenue" ? "Receitas" : "Despesas"}
             </button>
           ))}
         </div>
@@ -159,7 +193,7 @@ const Transactions = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                {["Date", "Description", "Category", "Amount", "Account"].map((h) => (
+                {["Data", "Descricao", "Categoria", "Valor", "Conta"].map((h) => (
                   <th key={h} className="px-4 py-2.5 text-left text-xxs font-medium uppercase tracking-wider text-muted-foreground">
                     {h}
                   </th>
@@ -170,24 +204,27 @@ const Transactions = () => {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-[13px] text-muted-foreground">
-                    No transactions found. Add your first transaction above.
+                    Nenhuma transacao encontrada.
                   </td>
                 </tr>
               ) : (
-                filtered.map((t) => (
+                filtered.map((t: any) => (
                   <tr key={t.id} className="border-b border-border last:border-0 hover:bg-secondary/50 transition-colors">
-                    <td className="px-4 py-3 text-[13px] text-muted-foreground">{format(new Date(t.date), "MMM d, yyyy")}</td>
-                    <td className="px-4 py-3 text-[13px] font-medium text-foreground">{t.description || "—"}</td>
+                    <td className="px-4 py-3 text-[13px] text-muted-foreground">
+                      {t.date ? format(new Date(t.date), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-[13px] font-medium text-foreground">{t.description || "-"}</td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-secondary px-2 py-0.5 text-xxs font-medium text-secondary-foreground">
-                        {t.category}
+                        {t.category || "Uncategorized"}
                       </span>
                     </td>
-                    <td className={`px-4 py-3 text-[13px] font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
-                      {t.amount > 0 ? "+" : "-"}${formatCurrency(Number(t.amount))}
+                    <td className={`px-4 py-3 text-[13px] font-semibold ${Number(t.amount) > 0 ? "text-success" : "text-foreground"}`}>
+                      {Number(t.amount) > 0 ? "+" : "-"}
+                      {formatBRL(Math.abs(Number(t.amount) || 0))}
                     </td>
                     <td className="px-4 py-3 text-[13px] text-muted-foreground">
-                      {(t as any).accounts?.bank_name || "—"}
+                      {(t as any).accounts?.bank_name || "-"}
                     </td>
                   </tr>
                 ))

@@ -8,7 +8,7 @@ create extension if not exists "pgcrypto";
 -- PROFILES
 -- =========================================
 
-create table public.profiles (
+create table if not exists public.profiles (
     id uuid primary key references auth.users(id) on delete cascade,
     name text,
     email text,
@@ -46,7 +46,7 @@ execute function public.handle_new_user();
 -- COMPANIES
 -- =========================================
 
-create table public.companies (
+create table if not exists public.companies (
     id uuid primary key default gen_random_uuid(),
     name text not null,
     owner_id uuid not null references auth.users(id) on delete cascade,
@@ -57,7 +57,7 @@ create table public.companies (
 -- MEMBERSHIPS
 -- =========================================
 
-create table public.memberships (
+create table if not exists public.memberships (
     id uuid primary key default gen_random_uuid(),
     user_id uuid references public.profiles(id) on delete cascade,
     company_id uuid not null references public.companies(id) on delete cascade,
@@ -74,7 +74,7 @@ create table public.memberships (
 -- ACCOUNTS
 -- =========================================
 
-create table public.accounts (
+create table if not exists public.accounts (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     bank_name text not null,
@@ -88,7 +88,7 @@ create table public.accounts (
 -- TRANSACTIONS
 -- =========================================
 
-create table public.transactions (
+create table if not exists public.transactions (
     id uuid primary key default gen_random_uuid(),
     account_id uuid not null references public.accounts(id) on delete cascade,
     amount numeric(15,2) not null,
@@ -103,7 +103,7 @@ create table public.transactions (
 -- EXPENSE CATEGORIES
 -- =========================================
 
-create table public.expense_categories (
+create table if not exists public.expense_categories (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     name text not null,
@@ -116,7 +116,7 @@ create table public.expense_categories (
 -- EXPENSES
 -- =========================================
 
-create table public.expenses (
+create table if not exists public.expenses (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     amount numeric(15,2) not null,
@@ -134,7 +134,7 @@ create table public.expenses (
 -- CUSTOMERS
 -- =========================================
 
-create table public.customers (
+create table if not exists public.customers (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     name text not null,
@@ -147,7 +147,7 @@ create table public.customers (
 -- VENDORS
 -- =========================================
 
-create table public.vendors (
+create table if not exists public.vendors (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     name text not null,
@@ -160,7 +160,7 @@ create table public.vendors (
 -- INVOICES
 -- =========================================
 
-create table public.invoices (
+create table if not exists public.invoices (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     customer_id uuid references public.customers(id),
@@ -181,7 +181,7 @@ create table public.invoices (
 -- WALLETS
 -- =========================================
 
-create table public.wallets (
+create table if not exists public.wallets (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     name text not null,
@@ -194,7 +194,7 @@ create table public.wallets (
 -- RISK & AI
 -- =========================================
 
-create table public.risk_scores (
+create table if not exists public.risk_scores (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     score integer not null,
@@ -203,7 +203,7 @@ create table public.risk_scores (
     calculated_at timestamptz default now()
 );
 
-create table public.savings_insights (
+create table if not exists public.savings_insights (
     id uuid primary key default gen_random_uuid(),
     company_id uuid not null references public.companies(id) on delete cascade,
     title text,
@@ -225,11 +225,13 @@ alter table public.memberships enable row level security;
 
 -- Profiles
 
+drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
 on public.profiles
 for select
 using (auth.uid() = id);
 
+drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own"
 on public.profiles
 for update
@@ -237,18 +239,20 @@ using (auth.uid() = id);
 
 -- Companies
 
+drop policy if exists "companies_select" on public.companies;
 create policy "companies_select"
 on public.companies
 for select
 using (
-auth.uid() = owner_id
-or exists (
-select 1 from public.memberships
-where memberships.company_id = companies.id
-and memberships.user_id = auth.uid()
-)
+  auth.uid() = owner_id
+  or exists (
+    select 1 from public.memberships
+    where memberships.company_id = companies.id
+    and memberships.user_id = auth.uid()
+  )
 );
 
+drop policy if exists "companies_insert" on public.companies;
 create policy "companies_insert"
 on public.companies
 for insert
@@ -256,14 +260,15 @@ with check (auth.role() = 'authenticated');
 
 -- Memberships
 
+drop policy if exists "memberships_select" on public.memberships;
 create policy "memberships_select"
 on public.memberships
 for select
 using (
-user_id = auth.uid()
-or exists (
-select 1 from public.companies
-where companies.id = memberships.company_id
-and companies.owner_id = auth.uid()
-)
+  user_id = auth.uid()
+  or exists (
+    select 1 from public.companies
+    where companies.id = memberships.company_id
+    and companies.owner_id = auth.uid()
+  )
 );

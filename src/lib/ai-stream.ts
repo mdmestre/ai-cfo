@@ -22,7 +22,7 @@ export async function streamChat({
   const token = session?.access_token;
 
   if (!token) {
-    onError("You must be logged in to use the AI assistant.");
+    onError("Voce precisa estar logado para usar o AI Copilot.");
     return;
   }
 
@@ -43,7 +43,7 @@ export async function streamChat({
     }
 
     if (!resp.body) {
-      onError("No response stream");
+      onError("Sem stream de resposta");
       return;
     }
 
@@ -84,7 +84,7 @@ export async function streamChat({
       }
     }
   } catch (error) {
-    onError(error instanceof Error ? error.message : "Analysis failed");
+    onError(error instanceof Error ? error.message : "Falha na analise");
   }
 
   onDone();
